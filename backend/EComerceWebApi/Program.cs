@@ -30,6 +30,9 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddLogging();
 var app = builder.Build();
+
+await app.ApplyDatabaseMigrationsAsync();
+
 app.UseCors("AllowAll");
 app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
