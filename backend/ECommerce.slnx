@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path="dockerfile" />
+  </Folder>
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Domain/Domain.csproj" />
+  <Project Path="EComerceWebApi/EComerceWebApi.csproj" />
+  <Project Path="Infrastructure/Infrastructure.csproj" />
+</Solution>

@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+!.env.example
+**/appsettings.json
+**/appsettings.Production.json
+**/appsettings.*.local.json
+
+# Backend
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Frontend
+**/node_modules/
+**/dist/
+**/.vite/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,34 @@
+.account-status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(20, 20, 20, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.account-status-dialog {
+  width: min(420px, 100%);
+  padding: 28px 30px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.account-status-dialog h2 {
+  margin: 0 0 10px;
+  color: #b91c1c;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.account-status-dialog p {
+  margin: 0;
+  color: #57534e;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

@@ -1,0 +1,582 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap');
+
+.profile-container {
+  display: flex;
+  gap: 32px;
+  width: 100%;
+  max-width: 100%;
+  padding: 40px 48px;
+  min-height: calc(100vh - 65px);
+  align-items: flex-start;
+  box-sizing: border-box;
+  background: var(--bg-page);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 65px);
+  color: var(--text);
+  font-size: 16px;
+}
+
+/* Sidebar */
+.profile-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  background-color: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 24px;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  text-align: center;
+}
+
+.profile-email {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  text-align: center;
+  word-break: break-all;
+}
+
+.profile-role {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.profile-nav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.profile-nav button {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.profile-nav button:hover {
+  background-color: var(--primary-light);
+}
+
+.profile-nav button.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Content */
+.profile-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-card {
+  background-color: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: var(--shadow);
+  min-height: calc(100vh - 145px);
+}
+
+.profile-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 24px 0;
+}
+
+.profile-card .btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.profile-card .btn-primary:disabled:hover {
+  background-color: var(--primary);
+}
+
+/* Adresler */
+.addresses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.addresses-header h2 {
+  margin: 0;
+}
+
+.btn-add-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-add-address:hover {
+  background-color: var(--primary-hover);
+}
+
+.address-form {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.addresses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addresses-empty {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 36px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #fffaf2 0%, #ffffff 100%);
+  border: 1px dashed rgba(181, 136, 76, 0.45);
+  border-radius: 18px;
+  color: var(--text);
+}
+
+.addresses-empty-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background-color: rgba(181, 136, 76, 0.12);
+  font-size: 26px;
+}
+
+.addresses-empty h3 {
+  margin: 4px 0 0;
+  color: var(--text-dark);
+  font-size: 22px;
+}
+
+.addresses-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--text-light);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.address-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.address-card:hover {
+  border-color: var(--primary);
+}
+
+.address-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.address-info p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.address-type-badge {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-dark);
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  font-size: 15px;
+}
+
+.btn-delete:hover {
+  background-color: #fef2f2;
+}
+.address-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  font-size: 15px;
+}
+
+.btn-edit:hover {
+  background-color: var(--primary-light);
+}
+
+.profile-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-review-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 18px 20px;
+  background-color: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.profile-review-card:hover {
+  border-color: var(--primary);
+}
+
+.profile-review-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-review-info h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.profile-review-info p {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.profile-review-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.btn-edit-review {
+  flex-shrink: 0;
+  background: none;
+  border: 1.5px solid var(--primary);
+  border-radius: 10px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-edit-review:hover {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+/* Hesabı Kapat nav butonu */
+.profile-nav-danger {
+  margin-top: 8px;
+  border-top: 1px solid var(--border) !important;
+  padding-top: 14px !important;
+  color: var(--danger) !important;
+}
+
+.profile-nav-danger:hover {
+  background-color: #fef2f2 !important;
+  color: var(--danger) !important;
+}
+
+.profile-nav-danger.active {
+  background-color: #fef2f2 !important;
+  color: var(--danger) !important;
+  font-weight: 700 !important;
+}
+
+/* Hesabı Kapat başlık */
+.danger-heading {
+  color: var(--danger) !important;
+}
+
+/* Hesabı Kapat section */
+.account-close-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 560px;
+}
+
+.account-close-warning {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: #fef9f0;
+  border: 1.5px solid #f59e0b;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.account-close-warning--danger {
+  background: #fef2f2;
+  border-color: var(--danger);
+}
+
+.warning-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.warning-content h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 6px 0;
+}
+
+.warning-content p {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.btn-close-account {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+  width: fit-content;
+}
+
+.btn-close-account:hover:not(:disabled) {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.btn-close-account:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.delete-credentials-form {
+  gap: 14px;
+}
+
+.delete-form-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-container {
+    flex-direction: column;
+    padding: 24px 16px;
+    gap: 18px;
+  }
+
+  .profile-sidebar {
+    width: 100%;
+    position: static;
+    padding: 24px 18px;
+  }
+
+  .profile-content {
+    width: 100%;
+    flex: none;
+  }
+
+  .profile-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-nav button {
+    text-align: center;
+  }
+
+  .profile-card {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: auto;
+    padding: 24px 18px;
+  }
+
+  .addresses-header,
+  .address-card {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .btn-add-address,
+  .address-actions,
+  .address-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .profile-review-card {
+    width: 100%;
+    box-sizing: border-box;
+    flex-direction: column;
+  }
+
+  .profile-review-info,
+  .profile-reviews-list {
+    width: 100%;
+  }
+
+  .delete-form-buttons {
+    flex-direction: column;
+  }
+
+  .btn-close-account {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .profile-container {
+    width: 100%;
+    max-width: 100vw;
+    padding: 16px 8px;
+  }
+
+  .profile-sidebar,
+  .profile-card {
+    width: 100%;
+    max-width: none;
+    border-radius: 14px;
+  }
+
+  .profile-card {
+    padding: 22px 16px;
+  }
+
+  .profile-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card h2,
+  .addresses-empty h3 {
+    font-size: 20px;
+  }
+
+  .address-form,
+  .account-close-warning,
+  .profile-review-card {
+    padding: 16px;
+  }
+
+  .profile-review-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

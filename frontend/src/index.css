@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #f5f4f0;
+  --bg-page: #f5f4f0;
+  --bg-white: #fff;
+  --bg-subtle: #f0ede6;
+  --text: #5a5750;
+  --text-dark: #1a1a1a;
+  --text-muted: #b0aba4;
+  --border: #e8e5de;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  --primary: #b08850;
+  --primary-hover: #956c38;
+  --primary-dark: #956c38;
+  --primary-light: #f0ede6;
+  --primary-faint: #e0d8cc;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
+  --info: #3b82f6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  body {
+    min-width: 320px;
+  }
+}
