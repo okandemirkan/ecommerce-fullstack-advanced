@@ -12,12 +12,14 @@ import ProductDetailPage from "./Pages/ProductDetailPage";
 import CartPage from "./Pages/CartPage";
 import NotificationCenter from "./components/NotificationCenter";
 import AccountStatusWatcher from "./components/AccountStatusWatcher";
+import ScrollToTop from "./components/ScrollToTop";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
 function App() {
   return (
    <BrowserRouter>
    <LanguageProvider>
+      <ScrollToTop />
       <Navbar />
       <AccountStatusWatcher />
       <NotificationCenter />
