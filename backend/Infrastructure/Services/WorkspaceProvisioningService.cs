@@ -23,18 +23,49 @@ namespace Infrastructure.Services
             User user,
             CancellationToken cancellationToken)
         {
+            await EnsureStorefrontWorkspaceAsync(cancellationToken);
+
             await using var transaction = await _context.Database
                 .BeginTransactionAsync(cancellationToken);
 
-            var workspace = Workspace.Create(isDemo: false);
+            var workspaceId = await _context.Workspaces
+                .Where(workspace => workspace.IsStorefront)
+                .Select(workspace => workspace.Id)
+                .SingleAsync(cancellationToken);
+
+            user.AssignToWorkspace(workspaceId);
+            foreach (var address in user.Addresses)
+                address.AssignToWorkspace(workspaceId);
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+
+        public async Task EnsureStorefrontWorkspaceAsync(CancellationToken cancellationToken)
+        {
+            if (await _context.Workspaces.AnyAsync(
+                workspace => workspace.IsStorefront,
+                cancellationToken))
+            {
+                return;
+            }
+
+            await using var transaction = await _context.Database
+                .BeginTransactionAsync(cancellationToken);
+
+            if (await _context.Workspaces.AnyAsync(
+                workspace => workspace.IsStorefront,
+                cancellationToken))
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return;
+            }
+
+            var workspace = Workspace.Create(isDemo: false, isStorefront: true);
             _context.Workspaces.Add(workspace);
             await _context.SaveChangesAsync(cancellationToken);
 
-            user.AssignToWorkspace(workspace.Id);
-            foreach (var address in user.Addresses)
-                address.AssignToWorkspace(workspace.Id);
-
-            _context.Users.Add(user);
             await CloneTemplateDataAsync(workspace.Id, includeAdmin: false, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }

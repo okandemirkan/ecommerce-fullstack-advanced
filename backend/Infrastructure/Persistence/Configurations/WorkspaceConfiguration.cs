@@ -10,7 +10,11 @@ namespace Infrastructure.Persistence.Configurations
         {
             builder.HasKey(w => w.Id);
             builder.Property(w => w.IsDemo).IsRequired();
+            builder.Property(w => w.IsStorefront).IsRequired().HasDefaultValue(false);
             builder.HasIndex(w => w.ExpiresAt);
+            builder.HasIndex(w => w.IsStorefront)
+                .IsUnique()
+                .HasFilter("\"IsStorefront\" = TRUE");
         }
     }
 }

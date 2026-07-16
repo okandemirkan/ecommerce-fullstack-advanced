@@ -6,6 +6,7 @@ namespace Application.Interfaces
 
     public interface IWorkspaceProvisioningService
     {
+        Task EnsureStorefrontWorkspaceAsync(CancellationToken cancellationToken);
         Task ProvisionRegisteredUserAsync(User user, CancellationToken cancellationToken);
         Task<DemoWorkspaceProvisioningResult> CreateDemoWorkspaceAsync(CancellationToken cancellationToken);
     }
