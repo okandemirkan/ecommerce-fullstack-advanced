@@ -116,15 +116,39 @@ namespace Infrastructure.Repositories
         }
         public async Task<bool> IsEmailExist(string email,int currentId = 0)
         {
-            var result = await _context.Users.IgnoreQueryFilters()
-                .AnyAsync(c=>c.Email ==  email && c.Id != currentId);
-            return result;
+            var query = _context.Users.IgnoreQueryFilters()
+                .Where(c => c.Email == email && c.Id != currentId);
+
+            if (_context.CurrentWorkspaceId is Guid workspaceId &&
+                await _context.Workspaces.AnyAsync(w => w.Id == workspaceId && w.IsDemo))
+            {
+                query = query.Where(c => c.WorkspaceId == workspaceId);
+            }
+            else
+            {
+                query = query.Where(c => c.WorkspaceId != null &&
+                    _context.Workspaces.Any(w => w.Id == c.WorkspaceId && !w.IsDemo));
+            }
+
+            return await query.AnyAsync();
         }
         public async Task<bool> IsPhoneNumberExist(string phoneNumber, int currentId = 0)
         {
-            var result = await _context.Users.IgnoreQueryFilters()
-                .AnyAsync(c => c.PhoneNumber == phoneNumber && c.Id != currentId);
-            return result;
+            var query = _context.Users.IgnoreQueryFilters()
+                .Where(c => c.PhoneNumber == phoneNumber && c.Id != currentId);
+
+            if (_context.CurrentWorkspaceId is Guid workspaceId &&
+                await _context.Workspaces.AnyAsync(w => w.Id == workspaceId && w.IsDemo))
+            {
+                query = query.Where(c => c.WorkspaceId == workspaceId);
+            }
+            else
+            {
+                query = query.Where(c => c.WorkspaceId != null &&
+                    _context.Workspaces.Any(w => w.Id == c.WorkspaceId && !w.IsDemo));
+            }
+
+            return await query.AnyAsync();
         }
 
     }

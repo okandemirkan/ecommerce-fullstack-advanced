@@ -21,12 +21,17 @@ namespace Application.Features.Users.Handlers.Command
                 throw new NotFoundException("No user found with the provided ID");
 
             var dto = request.UpdateUserDTO;
+            var previousEmail = user.Email;
+            var previousPhoneNumber = user.PhoneNumber;
 
             user.UpdateUser(dto.UserName, dto.Email, dto.PhoneNumber);
 
-            if (await _userRepository.IsEmailExist(dto.Email, request.UserId))
+            var emailChanged = !string.Equals(previousEmail, user.Email, StringComparison.OrdinalIgnoreCase);
+            var phoneNumberChanged = previousPhoneNumber != user.PhoneNumber;
+
+            if (emailChanged && await _userRepository.IsEmailExist(user.Email, request.UserId))
                 throw new AlreadyExistException("EMail already exist");
-            if (await _userRepository.IsPhoneNumberExist(user.PhoneNumber, request.UserId))
+            if (phoneNumberChanged && await _userRepository.IsPhoneNumberExist(user.PhoneNumber, request.UserId))
                 throw new AlreadyExistException("Phone Number already exist.");
             await _userRepository.UpdateUser(user);
 
