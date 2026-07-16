@@ -57,6 +57,18 @@ export const logout = () => {
     setAuthToken(null);
 }
 
+export const logoutAndCleanup = async () => {
+    try {
+        if (isDemoWorkspaceSession()) {
+            await api.delete(`/Auth/Demo-Workspace`);
+        }
+    } catch {
+        // The 30-minute cleanup job remains the fallback if this request cannot complete.
+    } finally {
+        logout();
+    }
+}
+
 export const isDemoWorkspaceSession = () => {
     return localStorage.getItem(DEMO_WORKSPACE_SESSION_KEY) === "true";
 }

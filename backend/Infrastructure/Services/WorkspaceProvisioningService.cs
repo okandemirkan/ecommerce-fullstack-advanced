@@ -73,8 +73,8 @@ namespace Infrastructure.Services
         public async Task<DemoWorkspaceProvisioningResult> CreateDemoWorkspaceAsync(
             CancellationToken cancellationToken)
         {
-            var lifetimeMinutes = _configuration.GetValue<int?>("DemoWorkspace:LifetimeMinutes") ?? 120;
-            var expiresAt = DateTime.UtcNow.AddMinutes(Math.Clamp(lifetimeMinutes, 15, 1440));
+            var lifetimeMinutes = _configuration.GetValue<int?>("DemoWorkspace:LifetimeMinutes") ?? 30;
+            var expiresAt = DateTime.UtcNow.AddMinutes(Math.Clamp(lifetimeMinutes, 15, 30));
 
             await using var transaction = await _context.Database
                 .BeginTransactionAsync(cancellationToken);

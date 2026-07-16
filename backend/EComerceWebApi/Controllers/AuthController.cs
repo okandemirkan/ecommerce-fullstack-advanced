@@ -1,6 +1,7 @@
 ﻿using Application.Features.Users.Commands;
 using Application.Features.Workspaces.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -35,6 +36,14 @@ namespace EComerceWebApi.Controllers
         public async Task<ActionResult> CreateDemoWorkspace()
         {
             var response = await _mediator.Send(new CreateDemoWorkspaceCommand());
+            return Ok(response);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("Demo-Workspace")]
+        public async Task<ActionResult> DeleteDemoWorkspace()
+        {
+            var response = await _mediator.Send(new DeleteDemoWorkspaceCommand());
             return Ok(response);
         }
     }

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { FaMinus, FaPlus, FaShoppingCart, FaTimes, FaTrash } from "react-icons/fa";
-import { AUTH_CHANGED_EVENT, logout, isLoggedIn, getRole } from "../services/authService";
+import { AUTH_CHANGED_EVENT, logoutAndCleanup, isLoggedIn, getRole } from "../services/authService";
 import {
   addCartItem,
   getCurrentUserCart,
@@ -77,16 +77,15 @@ function Navbar() {
     return () => window.removeEventListener("cartUpdated", handleCartUpdated);
   }, [fetchCart, loggedIn]);
 
-  function handleLogout() {
+  async function handleLogout() {
     setDropdownOpen(false);
     setCartOpen(false);
     setLogoutOverlay(true);
-    setTimeout(() => {
-      logout();
-      setCart({ carts: [], grandTotal: 0 });
-      setLogoutOverlay(false);
-      navigate("/");
-    }, 350);
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
+    await logoutAndCleanup();
+    setCart({ carts: [], grandTotal: 0 });
+    setLogoutOverlay(false);
+    navigate("/");
   }
 
   const handleCartToggle = () => {

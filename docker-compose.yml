@@ -34,7 +34,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
       Database__ApplyMigrations: "true"
-      DemoWorkspace__LifetimeMinutes: ${DEMO_WORKSPACE_LIFETIME_MINUTES:-120}
+      DemoWorkspace__LifetimeMinutes: ${DEMO_WORKSPACE_LIFETIME_MINUTES:-30}
       DataProtection__KeysPath: /var/lib/ecommerce/dataprotection
       Security__UseHttpsRedirection: "false"
       ConnectionStrings__DefaultConnection: "User ID=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Host=db;Port=5432;Database=${POSTGRES_DB:-ECommerceDB};Pooling=true;"
