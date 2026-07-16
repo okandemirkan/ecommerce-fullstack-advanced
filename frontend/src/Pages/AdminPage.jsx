@@ -1184,6 +1184,7 @@ function ProductsTab() {
     productName: hasValue(editForm.productName),
     categoryId: hasValue(editForm.categoryId),
     price: isValidNonNegativeNumber(editForm.price),
+    stock: isValidNonNegativeInteger(editForm.stock),
     imageUrl: isValidAbsoluteUrl(editForm.imageUrl)
   };
   const isAddFormValid = Object.values(addValidation).every(Boolean);
@@ -1337,7 +1338,16 @@ function ProductsTab() {
       return;
     }
     try {
-      await updateProduct(selectedProduct.productId, { productName: editForm.productName, categoryId: Number(editForm.categoryId), description: editForm.description, price: editForm.price, stock: editForm.stock, imageUrl: editForm.imageUrl || null });
+      const updatedProduct = {
+        productName: editForm.productName,
+        categoryId: Number(editForm.categoryId),
+        description: editForm.description,
+        price: Number(editForm.price),
+        stock: Number(editForm.stock),
+        imageUrl: editForm.imageUrl || null
+      };
+      await updateProduct(selectedProduct.productId, updatedProduct);
+      setSelectedProduct(previous => ({ ...previous, ...updatedProduct }));
       notify.success("Ürün güncellendi.");
       fetchProducts();
     } catch (err) { notify.error(err?.response?.data?.message || "Güncelleme başarısız."); }
@@ -1767,6 +1777,24 @@ function ProductsTab() {
                 />
                 <ValidationHint state={getValidationState(editForm.price, editValidation.price)}>
                   Fiyat negatif olamaz.
+                </ValidationHint>
+              </div>
+              <div className="validation-field">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="Stok"
+                  className={validationClass(editForm.stock, editValidation.stock)}
+                  value={editForm.stock}
+                  onChange={e => setEditForm({
+                    ...editForm,
+                    stock: e.target.value === "" ? "" : Number(e.target.value)
+                  })}
+                />
+                <ValidationHint state={getValidationState(editForm.stock, editValidation.stock)}>
+                  Stok negatif olamaz ve tam sayı olmalıdır.
                 </ValidationHint>
               </div>
               <div className="validation-field">
