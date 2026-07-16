@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Security;
 using Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -17,19 +18,23 @@ namespace Infrastructure.Services
         }
         public string GenerateToken(User user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var jwtKey = _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             //appsettingsjson'daki key'i çekiyoruz. token'in bize ait olup olmadığı kontrolü yapılıyor.
             //(security key)
 
             var creds = new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
             //token imzalanırken hangi key ve o key'in imzalanma algoritması.
 
-            var claims = new[] //token içeriği oluşturuluyor.
+            var claims = new List<Claim> //token içeriği oluşturuluyor.
             {
                 new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()), //claims her zaman string alır.
                 new Claim(ClaimTypes.Email,user.Email),
                 new Claim(ClaimTypes.Role,user.Role.RoleName),
             };
+            if (user.WorkspaceId.HasValue)
+                claims.Add(new Claim(WorkspaceClaimTypes.WorkspaceId, user.WorkspaceId.Value.ToString()));
 
             var token = new JwtSecurityToken( //token oluşturuluyor. 
                 issuer: _configuration["Jwt:Issuer"], //tokeni kim oluşturdu

@@ -10,7 +10,7 @@ import {
 } from "../services/cartService";
 import { notify } from "../utils/notify";
 import { formatPrice } from "../utils/format";
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "../i18n/language-context";
 import "./Navbar.css";
 
 function Navbar() {

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { notify } from "../utils/notify";
 import ValidationHint from "../components/ValidationHint";
+import ResponsiveSelect from "../components/ResponsiveSelect";
+import { ADDRESS_TYPES } from "../utils/address";
 import {
   getValidationState,
   hasValue,
@@ -225,15 +227,13 @@ function RegisterPage() {
               disabled={loading}
             />
 
-            <select
+            <ResponsiveSelect
               value={formData.address.addressType}
-              onChange={(e) => setFormData({ ...formData, address: { ...formData.address, addressType: e.target.value } })}
+              onChange={addressType => setFormData({ ...formData, address: { ...formData.address, addressType } })}
+              options={Object.entries(ADDRESS_TYPES).map(([optionValue, label]) => ({ value: optionValue, label }))}
+              ariaLabel="Adres türü"
               disabled={loading}
-            >
-              <option value="Home">Ev</option>
-              <option value="Job">İş</option>
-              <option value="Other">Diğer</option>
-            </select>
+            />
 
             <div className="form-buttons">
               <button className="btn-secondary" onClick={() => setStep(1)} disabled={loading}>Geri</button>

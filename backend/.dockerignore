@@ -4,8 +4,17 @@
 **/.git/
 **/.github/
 **/*.user
+**/*.suo
+**/*.log
+**/TestResults/
+**/coverage/
 .env
 .env.*
 **/appsettings.json
 **/appsettings.Production.json
 **/appsettings.*.local.json
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key
+**/secrets.json

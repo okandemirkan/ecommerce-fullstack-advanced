@@ -138,7 +138,7 @@ namespace EComerceWebApi.Controllers
         [HttpDelete("Delete-User")]
         public async Task<ActionResult> DeleteUser(int userId)
         {
-            var response = await _mediator.Send(new DeleteUserCommand(userId));
+            var response = await _mediator.Send(new DeleteUserCommand(userId, User.GetUserId()));
             return Ok(response);
         }
 
@@ -146,7 +146,8 @@ namespace EComerceWebApi.Controllers
         [HttpDelete("Delete-Current-User")]
         public async Task<ActionResult> DeleteUser()
         {
-            var response = await _mediator.Send(new DeleteUserCommand(User.GetUserId()));
+            var currentUserId = User.GetUserId();
+            var response = await _mediator.Send(new DeleteUserCommand(currentUserId, currentUserId));
             return Ok(response);
         }
 
@@ -154,7 +155,7 @@ namespace EComerceWebApi.Controllers
         [HttpDelete("Soft-Delete-User")]
         public async Task<ActionResult> SoftDeleteUser(int userId)
         {
-            var response = await _mediator.Send(new SoftDeleteUserCommand(userId));
+            var response = await _mediator.Send(new SoftDeleteUserCommand(userId, User.GetUserId()));
             return Ok(response);
         }
 

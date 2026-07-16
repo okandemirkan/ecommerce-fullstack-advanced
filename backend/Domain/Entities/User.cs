@@ -2,14 +2,14 @@
 using Domain.ValueObjects;
 namespace Domain.Entities
 {
-    public class User : BaseEntity<int>
+    public class User : WorkspaceEntity<int>
     {
-        public string Username { get; private set; }
-        public string Email { get; private set; }
-        public string PhoneNumber { get; private set; }
-        public string PasswordHash { get; private set; }
+        public string Username { get; private set; } = string.Empty;
+        public string Email { get; private set; } = string.Empty;
+        public string PhoneNumber { get; private set; } = string.Empty;
+        public string PasswordHash { get; private set; } = string.Empty;
         public int RoleId {  get; private set; }
-        public Role Role { get; private set; }
+        public Role Role { get; private set; } = null!;
 
         private readonly List<Address> _addresses = new();
         public IReadOnlyCollection<Address> Addresses => _addresses.AsReadOnly();
@@ -37,6 +37,15 @@ namespace Domain.Entities
                 RoleId = 2,
                 PhoneNumber = NormalizePhoneNumber(phoneNumber)
             };
+        }
+        public static User CreateWorkspaceCopy(string userName, string email,
+            string passwordHash, string phoneNumber, int roleId, Guid workspaceId)
+        {
+            var user = CreateUser(userName, email, passwordHash, phoneNumber);
+            if (roleId == 1)
+                user.MakeAdmin();
+            user.AssignToWorkspace(workspaceId);
+            return user;
         }
         public void UpdateUser(string userName, string eMail, string phoneNumber)
         {

@@ -2,11 +2,11 @@
 
 namespace Domain.Entities
 {
-    public class Review : BaseEntity<int>
+    public class Review : WorkspaceEntity<int>
     {
-        public User User { get; private set;}
+        public User User { get; private set;} = null!;
         public int UserId { get; private set;}
-        public Product Product { get; private set;}
+        public Product Product { get; private set;} = null!;
         public int ProductId { get; private set;}
         public string? Comment { get; private set;}
         public byte Rating { get; private set;}

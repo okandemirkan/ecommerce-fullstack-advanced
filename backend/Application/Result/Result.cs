@@ -6,7 +6,7 @@ namespace Application.Result
     {
         public string? Message { get; private set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] //data nullsa json'a yazma.
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public T? Response { get; private set; }
         private Result(string? message, T? data)
         {

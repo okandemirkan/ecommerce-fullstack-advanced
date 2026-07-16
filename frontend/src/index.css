@@ -61,3 +61,14 @@ textarea {
     min-width: 320px;
   }
 }
+
+@media (hover: none) and (pointer: coarse) {
+  button,
+  [role="button"],
+  .admin-list-item {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}

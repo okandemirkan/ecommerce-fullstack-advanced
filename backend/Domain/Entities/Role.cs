@@ -4,8 +4,8 @@ namespace Domain.Entities
 {
     public class Role : BaseEntity<int>
     {
-        public string RoleName { get; private set; }
-        public string Description { get; private set; }
+        public string RoleName { get; private set; } = string.Empty;
+        public string Description { get; private set; } = string.Empty;
         private Role(){ }
         public static Role CreateRole(string roleName,string Description)
         {

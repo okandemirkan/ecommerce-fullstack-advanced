@@ -5,6 +5,22 @@
 **/appsettings.json
 **/appsettings.Production.json
 **/appsettings.*.local.json
+**/secrets.json
+
+# Private keys, certificates and database exports
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.sql
+*.dump
+backups/
+
+# Local Docker overrides may contain host-specific values or secrets
+docker-compose.override.yml
+docker-compose.*.local.yml
 
 # Backend
 **/bin/

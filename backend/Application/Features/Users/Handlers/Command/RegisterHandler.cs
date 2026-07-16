@@ -11,10 +11,13 @@ namespace Application.Features.Users.Handlers.Command
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
-        public RegisterHandler(IUserRepository userRepository, IPasswordHasher passwordHasher)
+        private readonly IWorkspaceProvisioningService _workspaceProvisioningService;
+        public RegisterHandler(IUserRepository userRepository, IPasswordHasher passwordHasher,
+            IWorkspaceProvisioningService workspaceProvisioningService)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _workspaceProvisioningService = workspaceProvisioningService;
         }
         public async Task<Result<RegisterResponseDTO>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
@@ -38,7 +41,7 @@ namespace Application.Features.Users.Handlers.Command
             var result = new RegisterResponseDTO(user.Username, user.Email,
                 user.PhoneNumber,dto.Address);
 
-            await _userRepository.AddUser(user);
+            await _workspaceProvisioningService.ProvisionRegisteredUserAsync(user, cancellationToken);
             return Result<RegisterResponseDTO>.Success("Registration Successfully."
                 , result);
         }

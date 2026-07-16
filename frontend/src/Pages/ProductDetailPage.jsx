@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RatingStars from "../components/RatingStars";
 import { addCartItem } from "../services/cartService";
@@ -47,31 +47,20 @@ function ProductDetailPage() {
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
     : "0.0";
   const isReviewTooLong = reviewText.length > MAX_REVIEW_LENGTH;
+  const hasReviewChanged = !userReview ||
+    Number(userRating) !== Number(userReview.rating) ||
+    reviewText.trim() !== (userReview.comment || "").trim();
 
-  useEffect(() => {
-    fetchPageData();
+  const fetchReviews = useCallback(async () => {
+    try {
+      return await getReviewsByProductId(id);
+    } catch (error) {
+      if (error?.response?.status === 404) return [];
+      throw error;
+    }
   }, [id]);
 
-  useEffect(() => {
-    let active = true;
-
-    Promise.resolve().then(() => {
-      if (!active) return;
-
-      if (!userReview) {
-        setUserRating(0);
-        setReviewText("");
-        return;
-      }
-
-      setUserRating(userReview.rating);
-      setReviewText(userReview.comment || "");
-    });
-
-    return () => { active = false; };
-  }, [userReview]);
-
-  async function fetchPageData() {
+  const fetchPageData = useCallback(async () => {
     try {
       setLoading(true);
       setProductUnavailable(false);
@@ -101,16 +90,34 @@ function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchReviews, id]);
 
-  async function fetchReviews() {
-    try {
-      return await getReviewsByProductId(id);
-    } catch (error) {
-      if (error?.response?.status === 404) return [];
-      throw error;
-    }
-  }
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchPageData();
+    });
+    return () => { active = false; };
+  }, [fetchPageData]);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.resolve().then(() => {
+      if (!active) return;
+
+      if (!userReview) {
+        setUserRating(0);
+        setReviewText("");
+        return;
+      }
+
+      setUserRating(userReview.rating);
+      setReviewText(userReview.comment || "");
+    });
+
+    return () => { active = false; };
+  }, [userReview]);
 
   async function refreshReviews() {
     try {
@@ -153,6 +160,8 @@ function ProductDetailPage() {
       notify.warning(`Yorum en fazla ${MAX_REVIEW_LENGTH} karakter olabilir.`);
       return;
     }
+
+    if (userReview && !hasReviewChanged) return;
 
     try {
       setSubmittingReview(true);
@@ -276,7 +285,7 @@ function ProductDetailPage() {
                 )}
                 <button
                   className="btn-submit-review"
-                  disabled={submittingReview || isReviewTooLong}
+                  disabled={submittingReview || isReviewTooLong || (userReview && !hasReviewChanged)}
                   onClick={handleSubmitReview}
                 >
                   {submittingReview ? "Kaydediliyor..." : userReview ? "Güncelle" : "Gönder"}

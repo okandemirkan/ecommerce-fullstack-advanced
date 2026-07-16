@@ -4,6 +4,7 @@ namespace Application.Behaviours
 {
     public class ExceptionBehavior<TRequest, TResponse> :
         IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull
     {
         private readonly ILogger<ExceptionBehavior<TRequest, TResponse>> _logger;
         public ExceptionBehavior(ILogger<ExceptionBehavior<TRequest, TResponse>> logger)

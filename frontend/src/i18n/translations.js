@@ -4,6 +4,9 @@ const rawTranslations = {
   "Siparişlerim": "My Orders",
   "SipariÅŸlerim": "My Orders",
   "Admin Paneli": "Admin Panel",
+  "Demo Admin ile Başla": "Start as Demo Admin",
+  "Demo workspace hazır.": "Demo workspace is ready.",
+  "Demo workspace oluşturulamadı.": "The demo workspace could not be created.",
   "Sepetim": "My Cart",
   "Sepeti kapat": "Close cart",
   "Sepet yükleniyor...": "Loading cart...",
@@ -146,7 +149,6 @@ const rawTranslations = {
   "Siliniyor...": "Deleting...",
   "Evet, Hesabımı Sil": "Yes, Delete My Account",
 
-  "Siparişlerim": "My Orders",
   "Sipariş bulunamadı": "No orders found",
   "Sipariş Detayı": "Order Detail",
   "Sipariş Tarihi": "Order Date",

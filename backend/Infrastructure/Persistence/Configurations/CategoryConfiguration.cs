@@ -14,7 +14,7 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(c => c.IsDeleted).IsRequired();
             builder.HasQueryFilter(p => !p.IsDeleted);
 
-            builder.HasIndex(c => c.CategoryName).IsUnique();
+            builder.HasIndex(c => new { c.WorkspaceId, c.CategoryName }).IsUnique();
 
             builder.HasMany(c => c.Products)
                 .WithOne(c => c.Category)

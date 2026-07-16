@@ -7,6 +7,11 @@
   background-color: var(--bg-page);
 }
 
+.register-container.login-container {
+  flex: 1;
+  min-height: 0;
+}
+
 .register-card {
   background-color: var(--bg-white);
   border: 1px solid var(--border);
@@ -170,6 +175,10 @@
   .register-container {
     align-items: flex-start;
     padding: 24px 12px;
+  }
+
+  .register-container.login-container {
+    align-items: center;
   }
 
   .register-card {

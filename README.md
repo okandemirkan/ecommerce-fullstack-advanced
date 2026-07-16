@@ -53,3 +53,55 @@ Bu repository aşağıdaki konulara odaklanan devam eden bir öğrenme sürecini
 - Yapay zekâ araçlarını yazılım geliştirme sürecinde bilinçli şekilde kullanma
 
 > Bu uygulama eğitim ve portföy amacıyla geliştirilmiştir. Ek güvenlik, test, izleme ve altyapı geliştirmeleri yapılmadan production ortamında ticari bir e-ticaret platformu olarak kullanılması amaçlanmamıştır.
+
+---
+
+## Secure deployment / Güvenli yayınlama
+
+The repository does not contain production credentials. Copy `.env.example` to an untracked `.env` only for local Docker usage, or define the same variables in the secret/environment settings of the hosting platform. Never place real values in `.env.example`, Dockerfiles, Compose files, frontend variables, README files, or GitHub Actions workflow files.
+
+Bu repository production giriş bilgilerini içermez. Yerel Docker kullanımı için `.env.example` dosyasını Git tarafından takip edilmeyen `.env` olarak oluşturun veya aynı değişkenleri hosting platformunun secret/environment alanında tanımlayın. Gerçek değerleri `.env.example`, Dockerfile, Compose, frontend değişkenleri, README veya GitHub Actions dosyalarına yazmayın.
+
+Required secrets / Zorunlu secretlar:
+
+```text
+POSTGRES_USER
+POSTGRES_PASSWORD
+JWT_KEY
+LUCKYPENNY_LICENSE_KEY
+```
+
+Optional public settings / Opsiyonel genel ayarlar:
+
+```text
+POSTGRES_DB
+JWT_ISSUER
+JWT_AUDIENCE
+JWT_EXPIRES_IN_MINUTES
+DEMO_WORKSPACE_LIFETIME_MINUTES
+APP_PORT
+VITE_API_URL
+```
+
+Generate a JWT key with at least 32 random bytes. PowerShell example:
+
+```powershell
+$bytes = New-Object byte[] 48
+[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
+Production Docker start / Production Docker başlatma:
+
+```powershell
+Copy-Item .env.example .env
+# Replace the secret placeholders in .env before continuing.
+docker compose up -d --build
+docker compose ps
+```
+
+Only the frontend port is published. Browser requests to `/api` are proxied to the internal backend container, and PostgreSQL is reachable only from the Docker network. For separate frontend/backend hosting, set `VITE_API_URL` to the public API URL and add the frontend origin as `Cors__AllowedOrigins__0` in the backend environment.
+
+AutoMapper 15+ requires a license key for production use. Eligible individuals and small organizations can obtain a free Community license. Store it only as `LUCKYPENNY_LICENSE_KEY` in `.env` or the hosting platform's secret manager; never commit the real key.
+
+Yalnızca frontend portu dışarı açılır. Tarayıcının `/api` istekleri iç ağdaki backend containerına yönlendirilir ve PostgreSQL yalnızca Docker ağı içinden erişilebilir. Frontend ve backend ayrı servislerde yayınlanacaksa `VITE_API_URL` değerini genel API adresi yapın ve frontend originini backend ortamında `Cors__AllowedOrigins__0` olarak tanımlayın.

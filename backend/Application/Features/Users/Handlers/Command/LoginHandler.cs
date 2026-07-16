@@ -24,9 +24,17 @@ namespace Application.Features.Users.Handlers.Command
             var user = await _userRepository.GetUserByEmail(request.email);
             if (user is null)
                 throw new AuthException("Email or password is incorrect");
+            if (!user.WorkspaceId.HasValue)
+                throw new AuthException("Template accounts cannot sign in.");
 
             if(!_passwordHasher.Verify(request.password,user.PasswordHash))
                 throw new AuthException("Email or password is incorrect");
+
+            if (_passwordHasher.NeedsRehash(user.PasswordHash))
+            {
+                user.ChangePassword(_passwordHasher.Hash(request.password));
+                await _userRepository.UpdateUser(user);
+            }
 
             var token = _tokenService.GenerateToken(user);
             return Result<string>.Success("Login successful.", token);

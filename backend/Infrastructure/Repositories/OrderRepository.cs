@@ -12,7 +12,7 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<Order> GetOrderById(int id)
+        public async Task<Order?> GetOrderById(int id)
         {
             var order = await _context.Orders.Include(o => o.User).Include(o => o.Items).
                 ThenInclude(i=>i.Product)

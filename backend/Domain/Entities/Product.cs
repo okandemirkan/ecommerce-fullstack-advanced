@@ -1,11 +1,11 @@
 ﻿using Domain.Exceptions;
 namespace Domain.Entities
 {
-    public class Product : BaseEntity<int>
+    public class Product : WorkspaceEntity<int>
     {
-        public string ProductName { get; private set; }
+        public string ProductName { get; private set; } = string.Empty;
         public int CategoryId { get; private set; }
-        public Category Category { get; private set; }
+        public Category Category { get; private set; } = null!;
         public string? Description { get; private set; }
         public string? ImageUrl { get; private set; }
         public decimal Price { get; private set; }

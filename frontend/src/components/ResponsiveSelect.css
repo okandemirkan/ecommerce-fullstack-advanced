@@ -1,0 +1,122 @@
+.responsive-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.responsive-select-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid var(--border, #e8e5de);
+  border-radius: 10px;
+  background: var(--bg-white, #fff);
+  color: var(--text-dark, #25221e);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.responsive-select-trigger > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.responsive-select-trigger > svg {
+  flex: 0 0 auto;
+  font-size: 11px;
+  transition: transform 0.18s ease;
+}
+
+.responsive-select-trigger[aria-expanded="true"] {
+  border-color: var(--primary, #b08850);
+  box-shadow: 0 0 0 3px rgba(176, 136, 80, 0.1);
+}
+
+.responsive-select-trigger[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+
+.responsive-select-trigger:focus-visible {
+  outline: none;
+  border-color: var(--primary, #b08850);
+  box-shadow: 0 0 0 3px rgba(176, 136, 80, 0.12);
+}
+
+.responsive-select-trigger:disabled {
+  background: var(--bg-subtle, #f5f2ec);
+  color: var(--text-muted, #8d877e);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.responsive-select-menu {
+  position: fixed;
+  z-index: 5000;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  border: 1px solid var(--border, #e8e5de);
+  border-radius: 10px;
+  background: var(--bg-white, #fff);
+  box-shadow: 0 14px 32px rgba(48, 39, 28, 0.18);
+}
+
+.responsive-select-menu button {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dark, #25221e);
+  font: inherit;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.responsive-select-menu button span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.responsive-select-menu button svg {
+  flex: 0 0 auto;
+  color: var(--primary, #b08850);
+  font-size: 11px;
+}
+
+.responsive-select-menu button:hover,
+.responsive-select-menu button:focus-visible,
+.responsive-select-menu button.selected {
+  outline: none;
+  background: var(--primary-light, #f2ede5);
+  color: var(--primary-dark, #8b6635);
+}
+
+@media (max-width: 600px) {
+  .responsive-select-trigger {
+    min-height: 42px;
+    padding: 9px 12px;
+  }
+
+  .responsive-select-menu {
+    border-radius: 9px;
+  }
+}

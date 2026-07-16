@@ -2,9 +2,9 @@
 
 namespace Domain.Entities
 {
-    public class Category : BaseEntity<int>
+    public class Category : WorkspaceEntity<int>
     {
-        public string CategoryName { get; private set; }
+        public string CategoryName { get; private set; } = string.Empty;
 
         private readonly List<Product> _products = new();
         public IReadOnlyCollection<Product> Products => _products.AsReadOnly();

@@ -1,9 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { reverseTranslations, translations } from "./translations";
+import { LanguageContext } from "./language-context";
 
 const LANGUAGE_STORAGE_KEY = "siteLanguage";
-const LanguageContext = createContext(null);
-
 function getInitialLanguage() {
   const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
   return savedLanguage === "en" ? "en" : "tr";
@@ -20,7 +19,7 @@ function translatePattern(trimmed, language) {
     [/^\u{1F6D2}\s*Sepete Ekle$/iu, "\u{1F6D2} Add to Cart"],
     [/^\u{1F6D2}\s*Ekleniyor\.\.\.$/iu, "\u{1F6D2} Adding..."],
     [/^(.+)\s+kullan\u0131c\u0131s\u0131n\u0131n sipari\u015fleri$/i, "Orders of $1"],
-    [/^(.+)\s+\'in sipari\u015fleri$/i, "Orders for $1"],
+    [/^(.+)\s+'in sipari\u015fleri$/i, "Orders for $1"],
     [/^"(.+)" arama sonucu$/i, 'Search results for "$1"'],
     [/^Aktif\s*\((\d+)\)$/i, "Active ($1)"],
     [/^Pasif\s*\((\d+)\)$/i, "Inactive ($1)"],
@@ -42,7 +41,7 @@ function translatePattern(trimmed, language) {
     [/^\u{1F6D2}\s*Add to Cart$/iu, "\u{1F6D2} Sepete Ekle"],
     [/^\u{1F6D2}\s*Adding\.\.\.$/iu, "\u{1F6D2} Ekleniyor..."],
     [/^Orders of\s+(.+)$/i, "$1 kullan\u0131c\u0131s\u0131n\u0131n sipari\u015fleri"],
-    [/^Orders for\s+(.+)$/i, "$1\'in sipari\u015fleri"],
+    [/^Orders for\s+(.+)$/i, "$1'in sipari\u015fleri"],
     [/^Search results for\s+"(.+)"$/i, '"$1" arama sonucu'],
     [/^Active\s*\((\d+)\)$/i, "Aktif ($1)"],
     [/^Inactive\s*\((\d+)\)$/i, "Pasif ($1)"],
@@ -143,10 +142,4 @@ export function LanguageProvider({ children }) {
       {children}
     </LanguageContext.Provider>
   );
-}
-
-export function useLanguage() {
-  const context = useContext(LanguageContext);
-  if (!context) throw new Error("useLanguage must be used inside LanguageProvider");
-  return context;
 }

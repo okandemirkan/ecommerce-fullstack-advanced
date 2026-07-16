@@ -1,6 +1,6 @@
 import { useState } from "react"
 import "./RegisterPage.css";
-import { login } from "../services/authService";
+import { createDemoWorkspace, login } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { notify } from "../utils/notify";
@@ -26,12 +26,26 @@ function LoginPage() {
     }
   }
 
+  async function handleDemoWorkspace() {
+    if (loading) return;
+    try {
+      setLoading(true);
+      await createDemoWorkspace();
+      notify.success("Demo workspace hazır.");
+      navigate("/admin");
+    } catch (error) {
+      notify.error(error?.response?.data?.message || error?.message || "Demo workspace oluşturulamadı.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleKeyDown(e) {
     if (e.key === "Enter" && isFormValid) handleLogin();
   }
 
   return (
-    <div className="register-container">
+    <div className="register-container login-container">
       <div className="register-card">
         <h2>Giriş Yap</h2>
         <div className="form-step">
@@ -60,6 +74,9 @@ function LoginPage() {
 
           <button className="btn-primary" onClick={handleLogin} disabled={loading || !isFormValid}>
             {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+          </button>
+          <button className="btn-secondary" onClick={handleDemoWorkspace} disabled={loading}>
+            Demo Admin ile Başla
           </button>
         </div>
       </div>

@@ -1,8 +1,11 @@
 import axios from "axios";
 import { notify } from "../utils/notify";
 
+const apiBaseUrl = import.meta.env.VITE_API_URL?.trim() || "/api";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
+  timeout: 30000,
 });
 
 const AUTH_ENDPOINTS = ["/auth/login", "/auth/register"];
@@ -57,12 +60,7 @@ api.interceptors.request.use(async config => {
   const token = localStorage.getItem("token");    //Her requestte token bilgilerini gönderiyor.
   if (token && !isAuthEndpoint(config.url)) {
     if (!isAccountStatusEndpoint(config.url) && !isPublicEndpoint(config.url)) {
-      let isActive = true;
-      try {
-        isActive = await checkCurrentUserIsActive(token);
-      } catch (error) {
-        isActive = true;
-      }
+      const isActive = await checkCurrentUserIsActive(token).catch(() => true);
       if (!isActive) {
         window.dispatchEvent(new Event(ACCOUNT_SUSPENDED_EVENT));
         localStorage.removeItem("token");

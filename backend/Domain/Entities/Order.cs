@@ -3,11 +3,11 @@ using Domain.Exceptions;
 
 namespace Domain.Entities
 {
-    public class Order : BaseEntity<int>
+    public class Order : WorkspaceEntity<int>
     {
         public int UserId { get; private set; }
-        public User User { get; private set; }
-        public string ShippingAddress { get; private set; }
+        public User User { get; private set; } = null!;
+        public string ShippingAddress { get; private set; } = string.Empty;
         public decimal TotalPrice { get; private set; }
         public OrderStatus OrderStatus { get; private set; }
 
@@ -29,6 +29,24 @@ namespace Domain.Entities
 
             order.AddItem(product, quantity);
             return order;
+        }
+        public static Order CreateWorkspaceCopy(int userId, string shippingAddress,
+            decimal totalPrice, OrderStatus orderStatus, Guid workspaceId)
+        {
+            var order = new Order
+            {
+                UserId = userId,
+                ShippingAddress = shippingAddress,
+                TotalPrice = totalPrice,
+                OrderStatus = orderStatus
+            };
+            order.AssignToWorkspace(workspaceId);
+            return order;
+        }
+
+        public void AddWorkspaceItem(OrderItem item)
+        {
+            _items.Add(item);
         }
         public void AddItem(Product product, int quantity)
         {

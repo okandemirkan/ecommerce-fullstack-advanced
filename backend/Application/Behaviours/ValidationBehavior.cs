@@ -5,6 +5,7 @@ namespace Application.Behaviours
 {
     public class ValidationBehavior<TRequest, TResponse> :
         IPipelineBehavior<TRequest, TResponse> //Pipeline : Behavior zinciri.
+        where TRequest : notnull
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
         //Bu request tipi için kaç tane validator yazıldıysa hepsi buraya gelir.

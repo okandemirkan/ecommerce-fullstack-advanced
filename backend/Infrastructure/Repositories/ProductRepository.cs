@@ -42,31 +42,35 @@ namespace Infrastructure.Repositories
         }
         public async Task<PagedList<Product>> GetSoftDeletedProducts(int pageNumber, int pageSize)
         {
-            var query = _context.Products.IgnoreQueryFilters().Include(p => p.Category).Where(p => p.IsDeleted == true);
+            var query = _context.Products.IgnoreQueryFilters().Include(p => p.Category).Where(p =>
+                p.IsDeleted && p.WorkspaceId == _context.CurrentWorkspaceId);
 
             var totalCount = await query.CountAsync();
 
-            var products = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize)
+            var products = await query.OrderBy(product => product.Id)
+                .Skip((pageNumber - 1) * pageSize).Take(pageSize)
                 .ToListAsync();
 
             return new PagedList<Product>(products, totalCount, pageNumber, pageSize);
         }
 
-        public async Task<Product> GetSoftDeletedProductById(int productId)
+        public async Task<Product?> GetSoftDeletedProductById(int productId)
         {
             var product = await _context.Products.Where(p => p.IsDeleted == true).Include(p=>p.Category)
-                .IgnoreQueryFilters().FirstOrDefaultAsync(p=>p.Id== productId);
+                .IgnoreQueryFilters().FirstOrDefaultAsync(p=>p.Id == productId &&
+                    p.WorkspaceId == _context.CurrentWorkspaceId);
             return product;
         }
-        public async Task<Product> GetProductById(int id)
+        public async Task<Product?> GetProductById(int id)
         {
             var product = await _context.Products.Include(p => p.Category).SingleOrDefaultAsync(p => p.Id == id);
             return product;
         }
-        public async Task<Product> GetAnyProductById(int productId)
+        public async Task<Product?> GetAnyProductById(int productId)
         {
             var product = await _context.Products.IgnoreQueryFilters().Include(p=>p.Category)
-                .FirstOrDefaultAsync(p => p.Id == productId);
+                .FirstOrDefaultAsync(p => p.Id == productId &&
+                    p.WorkspaceId == _context.CurrentWorkspaceId);
             return product;
         }
 
@@ -92,7 +96,8 @@ namespace Infrastructure.Repositories
             var normalizedName = productName.Trim().ToLower();
 
             var query = _context.Products.Include(p => p.Category).IgnoreQueryFilters().Where
-                (p => p.ProductName.ToLower().Contains(normalizedName));
+                (p => p.WorkspaceId == _context.CurrentWorkspaceId &&
+                    p.ProductName.ToLower().Contains(normalizedName));
 
             var totalCount = await query.CountAsync();
 
@@ -120,6 +125,9 @@ namespace Infrastructure.Repositories
         public async Task AddStock(int id, int quantity)
         {
             var product = await GetProductById(id);
+            if (product is null)
+                throw new InvalidOperationException($"Product {id} was not found.");
+
             product.AddStock(quantity);
             await _context.SaveChangesAsync();
         }

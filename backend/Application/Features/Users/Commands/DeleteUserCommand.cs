@@ -2,5 +2,5 @@
 using Application.Result;
 namespace Application.Features.Users.Commands
 {
-    public record DeleteUserCommand(int userId) : IRequest<Result<object>>;
+    public record DeleteUserCommand(int UserId, int CurrentUserId) : IRequest<Result<object>>;
 }

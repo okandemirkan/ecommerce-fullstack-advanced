@@ -2,15 +2,15 @@ import "./HomePage.css";
 import { getAllProducts, getProductsByCategoryId, searchProductsByName } from "../services/productService";
 import { getAllCategories } from "../services/categoryService";
 import { getReviewsByProductId } from "../services/reviewService";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaPlus, FaStar } from "react-icons/fa";
+import { FaCheck, FaChevronDown, FaPlus, FaStar } from "react-icons/fa";
 import { addCartItem } from "../services/cartService";
 import { isLoggedIn } from "../services/authService";
 import { notify } from "../utils/notify";
 import { formatPrice } from "../utils/format";
 import { normalizeCategoryName } from "../utils/categoryName";
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "../i18n/language-context";
 import { translations } from "../i18n/translations";
 import Pagination from "../components/Pagination";
 
@@ -34,6 +34,11 @@ function calculateRatingSummary(reviews) {
 }
 
 const PAGE_SIZE = 12;
+const SORT_OPTIONS = [
+  { value: "Normal", tr: "Önerilen sıralama", en: "Recommended sorting" },
+  { value: "LowToHigh", tr: "Fiyat: düşükten yükseğe", en: "Price: low to high" },
+  { value: "HighToLow", tr: "Fiyat: yüksekten düşüğe", en: "Price: high to low" }
+];
 
 function getCategoryDisplayName(categoryName, language) {
   const normalizedName = normalizeCategoryName(categoryName);
@@ -55,8 +60,19 @@ function HomePage() {
   const [ratingSummaries, setRatingSummaries] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [sortType, setSortType] = useState("Normal");
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
+  const sortMenuRef = useRef(null);
+
+  useEffect(() => {
+    function closeSortMenu(event) {
+      if (!sortMenuRef.current?.contains(event.target)) setIsSortMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeSortMenu);
+    return () => document.removeEventListener("pointerdown", closeSortMenu);
+  }, []);
 
   useEffect(() => {
     getAllCategories(1, 100)
@@ -123,9 +139,10 @@ function HomePage() {
     setCurrentPage(1);
   }
 
-  function handleSortChange(event) {
-    setSortType(event.target.value);
+  function handleSortChange(nextSortType) {
+    setSortType(nextSortType);
     setCurrentPage(1);
+    setIsSortMenuOpen(false);
   }
 
   function handleProductSearch(event) {
@@ -191,14 +208,44 @@ function HomePage() {
                   ? getCategoryDisplayName(categories.find(category => category.categoryId === selectedCategoryId)?.categoryName, language)
                   : "Tüm ürünler"}
             </span>
-            <label className="sort-control">
+            <div
+              className="sort-control"
+              ref={sortMenuRef}
+              onKeyDown={event => {
+                if (event.key === "Escape") setIsSortMenuOpen(false);
+              }}
+            >
               <span>Sırala</span>
-              <select value={sortType} onChange={handleSortChange}>
-                <option value="Normal">Önerilen sıralama</option>
-                <option value="LowToHigh">Fiyat: düşükten yükseğe</option>
-                <option value="HighToLow">Fiyat: yüksekten düşüğe</option>
-              </select>
-            </label>
+              <div className="sort-menu">
+                <button
+                  type="button"
+                  className="sort-menu-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={isSortMenuOpen}
+                  onClick={() => setIsSortMenuOpen(current => !current)}
+                >
+                  <span>{SORT_OPTIONS.find(option => option.value === sortType)?.[language === "en" ? "en" : "tr"]}</span>
+                  <FaChevronDown aria-hidden="true" />
+                </button>
+                {isSortMenuOpen && (
+                  <div className="sort-menu-options" role="listbox" aria-label={language === "en" ? "Sort products" : "Ürünleri sırala"}>
+                    {SORT_OPTIONS.map(option => (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={sortType === option.value}
+                        className={sortType === option.value ? "selected" : ""}
+                        key={option.value}
+                        onClick={() => handleSortChange(option.value)}
+                      >
+                        <span>{option[language === "en" ? "en" : "tr"]}</span>
+                        {sortType === option.value && <FaCheck aria-hidden="true" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         <form className="product-search-bar" onSubmit={handleProductSearch}>

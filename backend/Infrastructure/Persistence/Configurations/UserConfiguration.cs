@@ -24,8 +24,8 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(c => c.IsDeleted).IsRequired().HasDefaultValue(false);
             builder.Property(c => c.PasswordHash).IsRequired().HasMaxLength(300);
 
-            builder.HasIndex(c => c.Email).IsUnique();
-            builder.HasIndex(c => c.PhoneNumber).IsUnique();
+            builder.HasIndex(c => new { c.WorkspaceId, c.Email }).IsUnique();
+            builder.HasIndex(c => new { c.WorkspaceId, c.PhoneNumber }).IsUnique();
             builder.HasQueryFilter(c => !c.IsDeleted);
 
             builder.HasData(

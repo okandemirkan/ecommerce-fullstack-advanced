@@ -8,7 +8,7 @@ namespace Domain.Entities
         {
             CreatedAt = DateTime.UtcNow;
         }
-        public T Id { get; private set; }
+        public T Id { get; private set; } = default!;
         public DateTime CreatedAt { get; private set; }
         public bool IsDeleted { get; private set; }
         public void MarkasDeleted()

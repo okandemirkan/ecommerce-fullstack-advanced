@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserOrders, cancelOrder, updateShippingAddress } from "../services/orderService";
 import { getAddresses } from "../services/userService";
@@ -65,10 +65,7 @@ function OrdersPage() {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [savingAddress, setSavingAddress] = useState(false);
 
-  useEffect(() => { fetchOrders(); }, [currentPage]);
-  useEffect(() => { fetchAddresses(); }, []);
-
-  async function fetchOrders() {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getCurrentUserOrders(currentPage, ORDERS_PAGE_SIZE);
@@ -84,7 +81,7 @@ function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [currentPage]);
 
   async function fetchAddresses() {
     try {
@@ -94,6 +91,22 @@ function OrdersPage() {
       setUserAddresses([]);
     }
   }
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchOrders();
+    });
+    return () => { active = false; };
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchAddresses();
+    });
+    return () => { active = false; };
+  }, []);
 
   function handleCancelClick(order) {
     setConfirmModal({ isOpen: true, order });

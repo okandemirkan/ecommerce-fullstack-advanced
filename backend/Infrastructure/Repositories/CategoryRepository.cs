@@ -18,15 +18,23 @@ namespace Infrastructure.Repositories
         {
             var totalCount = await _context.Categories.CountAsync();
 
-            var categories = await _context.Categories.Skip((pageNumber-1)*pageSize).
+            var categories = await _context.Categories.OrderBy(category => category.Id)
+                .Skip((pageNumber-1)*pageSize).
                 Take(pageSize).ToListAsync();
 
             return new PagedList<Category>(categories, totalCount, pageNumber, pageSize);
         }
-        public async Task<Category> GetCategoryById(int categoryId)
+        public async Task<Category?> GetCategoryById(int categoryId)
         {
             var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId);
             return category;
+        }
+        public async Task<bool> HasProducts(int categoryId)
+        {
+            return await _context.Products
+                .IgnoreQueryFilters()
+                .AnyAsync(product => product.CategoryId == categoryId &&
+                    product.WorkspaceId == _context.CurrentWorkspaceId);
         }
         public async Task AddCategory(Category category)
         {

@@ -13,6 +13,7 @@ import { getAddresses } from "../services/userService";
 import { notify } from "../utils/notify";
 import { ADDRESS_TYPES, getAddressId } from "../utils/address";
 import { formatPrice } from "../utils/format";
+import ResponsiveSelect from "../components/ResponsiveSelect";
 import "./CartPage.css";
 
 function CartPage() {
@@ -273,17 +274,16 @@ function CartPage() {
                   <button type="button" onClick={() => navigate("/profile")}>Adres Ekle</button>
                 </div>
               ) : (
-                <select
+                <ResponsiveSelect
                   id="address"
                   value={selectedAddressId}
-                  onChange={(event) => setSelectedAddressId(event.target.value)}
-                >
-                  {addresses.map((address) => (
-                    <option key={getAddressId(address)} value={getAddressId(address)}>
-                      {ADDRESS_TYPES[address.addressType]} - {address.district}, {address.city}
-                    </option>
-                  ))}
-                </select>
+                  onChange={addressId => setSelectedAddressId(addressId)}
+                  options={addresses.map(address => ({
+                    value: getAddressId(address),
+                    label: `${ADDRESS_TYPES[address.addressType]} - ${address.district}, ${address.city}`,
+                  }))}
+                  ariaLabel="Teslimat adresi"
+                />
               )}
             </div>
 

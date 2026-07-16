@@ -2,14 +2,14 @@
 using Domain.Exceptions;
 namespace Domain.Entities
 {
-    public class Address : BaseEntity<int>
+    public class Address : WorkspaceEntity<int>
     {
         public int UserId { get; private set; }
-        public User User { get; private set; }
+        public User User { get; private set; } = null!;
         public AddressType AddressType { get; private set; }
-        public string City { get; private set; }
-        public string District { get; private set; }
-        public string FullAddress { get; private set; }
+        public string City { get; private set; } = string.Empty;
+        public string District { get; private set; } = string.Empty;
+        public string FullAddress { get; private set; } = string.Empty;
         public string? ZipCode { get; private set; }
         private Address()
         {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getAllUsers, getUserById, getUserByMail, getUserByPhoneNumber, updateUser, makeAdmin, removeAdminRole,
@@ -19,6 +19,7 @@ import {
 } from "../services/categoryService";
 import { notify } from "../utils/notify";
 import ValidationHint from "../components/ValidationHint";
+import ResponsiveSelect from "../components/ResponsiveSelect";
 import {
   getValidationState,
   hasValue,
@@ -33,6 +34,7 @@ import {
 import { ADDRESS_TYPES, getAddressId } from "../utils/address";
 import { normalizeCategoryName } from "../utils/categoryName";
 import { getUserEmail, getUserId, normalizeUser } from "../utils/user";
+import { getCurrentUserId } from "../services/authService";
 import {
   STATUS_COLOR_MAP,
   STATUS_MAP,
@@ -75,8 +77,41 @@ function getUserTabLabel(tab) {
 const USER_PAGE_SIZE = 10;
 const USER_DETAIL_ORDERS_PAGE_SIZE = 5;
 
+function useMobileResultPanelScroll(targetKey) {
+  const panelRef = useRef(null);
+  const lastTargetKeyRef = useRef(null);
+
+  useEffect(() => {
+    if (!targetKey) {
+      lastTargetKeyRef.current = null;
+      return undefined;
+    }
+
+    if (lastTargetKeyRef.current === targetKey || !window.matchMedia("(max-width: 900px)").matches) {
+      return undefined;
+    }
+
+    lastTargetKeyRef.current = targetKey;
+    const animationFrame = window.requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const navbarHeight = document.querySelector(".navbar")?.getBoundingClientRect().height ?? 0;
+      const targetTop = window.scrollY + panel.getBoundingClientRect().top - navbarHeight - 12;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [targetKey]);
+
+  return panelRef;
+}
+
 function UsersTab() {
   const navigate = useNavigate();
+  const currentUserId = getCurrentUserId();
+  const userDetailPanelRef = useRef(null);
+  const lastAutoScrolledUserRef = useRef(null);
   // Aktif kullanıcılar
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
@@ -94,6 +129,7 @@ function UsersTab() {
   const [searchType, setSearchType] = useState("email");
   const [searchValue, setSearchValue] = useState("");
   const [searchResult, setSearchResult] = useState(null);
+  const [userSearchNotFound, setUserSearchNotFound] = useState(false);
   const [searchPage, setSearchPage] = useState(1);
   const [searchingUser, setSearchingUser] = useState(false);
   const [deletedUserIds, setDeletedUserIds] = useState(new Set());
@@ -141,14 +177,44 @@ function UsersTab() {
       : searchValue.trim().length >= 3;
   const searchValidationState = getValidationState(searchValue, isSearchValid);
 
+  useEffect(() => {
+    const selectedDetailUser = userDetail ?? selectedDeletedUser;
+    const selectedDetailKey = selectedDetailUser
+      ? `${userDetail ? "active" : "deleted"}:${getUserId(selectedDetailUser) ?? getUserEmail(selectedDetailUser)}`
+      : userSearchNotFound
+        ? `not-found:${searchType}:${searchValue.trim()}`
+        : searchResult
+          ? `search-result:${searchType}:${searchValue.trim()}:${searchPage}`
+          : null;
+
+    if (!selectedDetailKey) {
+      lastAutoScrolledUserRef.current = null;
+      return undefined;
+    }
+
+    if (lastAutoScrolledUserRef.current === selectedDetailKey || !window.matchMedia("(max-width: 900px)").matches) {
+      return undefined;
+    }
+
+    lastAutoScrolledUserRef.current = selectedDetailKey;
+    const animationFrame = window.requestAnimationFrame(() => {
+      const detailPanel = userDetailPanelRef.current;
+      if (!detailPanel) return;
+
+      const navbarHeight = document.querySelector(".navbar")?.getBoundingClientRect().height ?? 0;
+      const targetTop = window.scrollY + detailPanel.getBoundingClientRect().top - navbarHeight - 12;
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [userDetail, selectedDeletedUser, userSearchNotFound, searchResult, searchPage, searchType, searchValue]);
+
   function addressInputClass(value, isValid) {
     const state = getValidationState(value, isValid);
     return state === "neutral" ? "" : `validation-input-${state}`;
   }
 
-  useEffect(() => { fetchUsers(); }, [page]);
-
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     try {
       const data = await getAllUsers(page, USER_PAGE_SIZE);
       setUsers(data.items);
@@ -156,9 +222,9 @@ function UsersTab() {
       setTotalCount(data.totalCount);
     }
     catch { notify.error("Kullanıcılar alınamadı."); }
-  }
+  }, [page]);
 
-  async function fetchDeletedUsers() {
+  const fetchDeletedUsers = useCallback(async () => {
     try {
       setDeletedLoading(true);
       const data = await getSoftDeletedUsers(deletedPage, USER_PAGE_SIZE);
@@ -173,7 +239,15 @@ function UsersTab() {
     } finally {
       setDeletedLoading(false);
     }
-  }
+  }, [deletedPage]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchUsers();
+    });
+    return () => { active = false; };
+  }, [fetchUsers]);
 
   async function handleUserSearch(event, pageToLoad = 1) {
     event?.preventDefault();
@@ -181,6 +255,7 @@ function UsersTab() {
 
     try {
       setSearchingUser(true);
+      setUserSearchNotFound(false);
       const result = searchType === "email"
         ? await getUserByMail(searchValue.trim())
         : searchType === "phone"
@@ -195,6 +270,7 @@ function UsersTab() {
       }
 
       setSearchResult(result);
+      setUserSearchNotFound(searchType === "name" && (result?.items ?? []).length === 0);
       setSearchPage(pageToLoad);
       setSelectedUser(null);
       setUserDetail(null);
@@ -202,6 +278,7 @@ function UsersTab() {
     } catch (err) {
       setSearchResult(null);
       setSelectedUser(null);
+      setUserSearchNotFound(err?.response?.status === 404);
       if (err?.response?.status === 404) {
         notify.warning("Bu bilgilerle eşleşen kullanıcı bulunamadı.");
       } else {
@@ -215,6 +292,7 @@ function UsersTab() {
   function clearUserSearch() {
     setSearchValue("");
     setSearchResult(null);
+    setUserSearchNotFound(false);
     setSearchPage(1);
     setSelectedUser(null);
     setUserDetail(null);
@@ -253,7 +331,7 @@ function UsersTab() {
     });
 
     return () => { active = false; };
-  }, [deletedPage, userView]);
+  }, [fetchDeletedUsers, userView]);
 
   function isUserDeleted(user) {
     return user?.isDeleted === true || deletedUserIds.has(getUserId(user));
@@ -516,7 +594,7 @@ function UsersTab() {
       : [];
 
   return (
-    <div className="admin-split">
+    <div className="admin-split users-admin-split">
       {/* Soft delete onay modalı */}
       <ConfirmModal
         isOpen={softDeleteUserModal}
@@ -633,6 +711,7 @@ function UsersTab() {
                 onChange={event => {
                   setSearchValue(event.target.value);
                   setSearchResult(null);
+                  setUserSearchNotFound(false);
                 }}
               />
               <button type="submit" disabled={!isSearchValid || searchingUser}>
@@ -704,7 +783,7 @@ function UsersTab() {
       {/* Sağ Panel */}
       {userView === "active" && !selectedDeletedUser ? (
         userDetail ? (
-          <div className="admin-detail-panel">
+          <div ref={userDetailPanelRef} className="admin-detail-panel">
             <div className="admin-detail-header">
               <div className="admin-detail-avatar">{userDetail.userName?.charAt(0).toUpperCase()}</div>
               <div>
@@ -713,11 +792,11 @@ function UsersTab() {
               </div>
               <div className="admin-detail-actions">
                 {userDetail.role === "Admin"
-                  ? <button className="btn-warning" onClick={handleRemoveAdmin}>Admin Rolünü Kaldır</button>
+                  ? <button className="btn-warning" onClick={handleRemoveAdmin} disabled={getUserId(userDetail) === currentUserId}>Admin Rolünü Kaldır</button>
                   : <button className="btn-success" onClick={handleMakeAdmin}>Admin Yap</button>
                 }
-                <button className="btn-warning" onClick={() => setSoftDeleteUserModal(true)}>Pasife Al</button>
-                <button className="btn-danger" onClick={openHardDeleteFirstConfirm}>Kalıcı Sil</button>
+                <button className="btn-warning" onClick={() => setSoftDeleteUserModal(true)} disabled={getUserId(userDetail) === currentUserId}>Pasife Al</button>
+                <button className="btn-danger" onClick={openHardDeleteFirstConfirm} disabled={getUserId(userDetail) === currentUserId}>Kalıcı Sil</button>
                 <button
                   type="button"
                   className="btn-close-detail"
@@ -824,11 +903,12 @@ function UsersTab() {
                       </ValidationHint>
                     </div>
                     <input placeholder="Posta Kodu" value={addressForm.zipCode} onChange={e => setAddressForm({ ...addressForm, zipCode: e.target.value })} />
-                    <select value={addressForm.addressType} onChange={e => setAddressForm({ ...addressForm, addressType: e.target.value })}>
-                      <option value="Home">Ev</option>
-                      <option value="Job">İş</option>
-                      <option value="Other">Diğer</option>
-                    </select>
+                    <ResponsiveSelect
+                      value={addressForm.addressType}
+                      onChange={addressType => setAddressForm({ ...addressForm, addressType })}
+                      options={Object.entries(ADDRESS_TYPES).map(([optionValue, label]) => ({ value: optionValue, label }))}
+                      ariaLabel="Adres türü"
+                    />
                     <div className="form-buttons">
                       <button className="btn-secondary" onClick={() => setShowAddAddress(false)}>İptal</button>
                       <button className="btn-primary" onClick={handleAddAddress} disabled={!isAddressFormValid}>Kaydet</button>
@@ -875,11 +955,12 @@ function UsersTab() {
                           </ValidationHint>
                         </div>
                         <input placeholder="Posta Kodu" value={editAddressForm.zipCode} onChange={e => setEditAddressForm({ ...editAddressForm, zipCode: e.target.value })} />
-                        <select value={editAddressForm.addressType} onChange={e => setEditAddressForm({ ...editAddressForm, addressType: e.target.value })}>
-                          <option value="Home">Ev</option>
-                          <option value="Job">İş</option>
-                          <option value="Other">Diğer</option>
-                        </select>
+                        <ResponsiveSelect
+                          value={editAddressForm.addressType}
+                          onChange={addressType => setEditAddressForm({ ...editAddressForm, addressType })}
+                          options={Object.entries(ADDRESS_TYPES).map(([optionValue, label]) => ({ value: optionValue, label }))}
+                          ariaLabel="Adres türü"
+                        />
                         <div className="form-buttons">
                           <button className="btn-secondary" onClick={() => setEditingAddress(null)}>İptal</button>
                           <button className="btn-primary" onClick={() => handleUpdateAddress(addressId)} disabled={!isEditAddressFormValid}>Kaydet</button>
@@ -973,13 +1054,15 @@ function UsersTab() {
               </div>
             )}
           </div>
-        ) : searchResult ? (
-          <div className="admin-detail-panel admin-search-results-panel">
+        ) : searchResult || userSearchNotFound ? (
+          <div ref={userDetailPanelRef} className="admin-detail-panel admin-search-results-panel">
             <div className="admin-section-title-row">
               <div>
                 <span className="admin-section-kicker">Arama Sonuçları</span>
                 <h3>
-                  {searchType === "name"
+                  {userSearchNotFound
+                    ? "0 kullanıcı bulundu"
+                    : searchType === "name"
                     ? `${searchResult.totalCount ?? searchUsers.length} kullanıcı bulundu`
                     : "1 kullanıcı bulundu"}
                 </h3>
@@ -1034,7 +1117,7 @@ function UsersTab() {
       ) : (
         /* Pasif kullanıcı sağ panel */
         selectedDeletedUser ? (
-          <div className="admin-detail-panel">
+          <div ref={userDetailPanelRef} className="admin-detail-panel">
             <div className="admin-detail-header">
               <div className="admin-detail-avatar" style={{ opacity: 0.5 }}>{selectedDeletedUser.userName?.charAt(0).toUpperCase()}</div>
               <div>
@@ -1126,24 +1209,26 @@ function ProductsTab() {
   const [productSearchPage, setProductSearchPage] = useState(1);
   const [productSearching, setProductSearching] = useState(false);
   const [deletedProductIds, setDeletedProductIds] = useState(new Set());
+  const productResultPanelRef = useMobileResultPanelScroll(
+    showAddForm
+      ? "add-product"
+      : selectedProduct
+        ? `product:${selectedProduct.productId}`
+        : selectedDeletedProduct
+          ? `deleted-product:${selectedDeletedProduct.productId}`
+          : null
+  );
 
-  useEffect(() => { fetchProducts(); }, [productPage]);
-  useEffect(() => {
-    getAllCategories(1, 100)
-      .then(data => setCategories(data.items ?? []))
-      .catch(() => notify.error("Kategoriler alınamadı."));
-  }, []);
-
-  async function fetchProducts() {
+  const fetchProducts = useCallback(async () => {
     try {
       const data = await getAllProducts(productPage, PRODUCT_PAGE_SIZE);
       setProducts(data.items);
       setProductTotalPages(data.totalPages);
       setProductTotalCount(data.totalCount);
     } catch { notify.error("Ürünler alınamadı."); }
-  }
+  }, [productPage]);
 
-  async function fetchDeletedProducts() {
+  const fetchDeletedProducts = useCallback(async () => {
     try {
       setDeletedLoading(true);
       const res = await getSoftDeletedProducts(deletedProductPage, PRODUCT_PAGE_SIZE);
@@ -1158,7 +1243,20 @@ function ProductsTab() {
     } finally {
       setDeletedLoading(false);
     }
-  }
+  }, [deletedProductPage]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchProducts();
+    });
+    return () => { active = false; };
+  }, [fetchProducts]);
+  useEffect(() => {
+    getAllCategories(1, 100)
+      .then(data => setCategories(data.items ?? []))
+      .catch(() => notify.error("Kategoriler alınamadı."));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -1168,7 +1266,7 @@ function ProductsTab() {
     });
 
     return () => { active = false; };
-  }, [deletedProductPage, productView]);
+  }, [fetchDeletedProducts, productView]);
 
   function switchView(view) {
     setProductView(view);
@@ -1367,7 +1465,7 @@ function ProductsTab() {
 
   // ─── RENDER ────────────────────────────────────────────────
   return (
-    <div className="admin-split">
+    <div className="admin-split compact-admin-list products-admin-split">
       <ConfirmModal
         isOpen={deleteProductModal}
         title="Ürün Sil (Soft Delete)"
@@ -1512,7 +1610,7 @@ function ProductsTab() {
       {/* Sağ Panel */}
       {productView === "active" && !selectedDeletedProduct ? (
         showAddForm ? (
-          <div className="admin-detail-panel">
+          <div ref={productResultPanelRef} className="admin-detail-panel">
             <div className="admin-detail-header">
               <h3>Yeni Ürün Ekle</h3>
               <button className="btn-secondary" onClick={() => setShowAddForm(false)}>İptal</button>
@@ -1530,16 +1628,19 @@ function ProductsTab() {
                 </ValidationHint>
               </div>
               <div className="validation-field">
-                <select
-                  className={validationClass(addForm.categoryId, addValidation.categoryId)}
+                <ResponsiveSelect
                   value={addForm.categoryId}
-                  onChange={e => setAddForm({ ...addForm, categoryId: e.target.value })}
-                >
-                  <option value="">Kategori Seçin</option>
-                  {categories.map(category => (
-                    <option key={category.categoryId} value={category.categoryId}>{normalizeCategoryName(category.categoryName)}</option>
-                  ))}
-                </select>
+                  onChange={categoryId => setAddForm({ ...addForm, categoryId })}
+                  options={[
+                    { value: "", label: "Kategori Seçin" },
+                    ...categories.map(category => ({
+                      value: category.categoryId,
+                      label: normalizeCategoryName(category.categoryName),
+                    })),
+                  ]}
+                  ariaLabel="Kategori seçin"
+                  triggerClassName={validationClass(addForm.categoryId, addValidation.categoryId)}
+                />
                 <ValidationHint state={getValidationState(addForm.categoryId, addValidation.categoryId)}>
                   Bir kategori seçilmelidir.
                 </ValidationHint>
@@ -1602,7 +1703,7 @@ function ProductsTab() {
             </div>
           </div>
         ) : selectedProduct ? (
-          <div className="admin-detail-panel">
+          <div ref={productResultPanelRef} className="admin-detail-panel">
             <div className="admin-detail-header">
               <h3>{selectedProduct.productName}</h3>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -1634,16 +1735,19 @@ function ProductsTab() {
                   Ürün adı zorunludur.
                 </ValidationHint>
               </div>
-              <select
-                className={validationClass(editForm.categoryId, editValidation.categoryId)}
+              <ResponsiveSelect
                 value={editForm.categoryId}
-                onChange={e => setEditForm({ ...editForm, categoryId: e.target.value })}
-              >
-                <option value="">Kategori Seçin</option>
-                {categories.map(category => (
-                  <option key={category.categoryId} value={category.categoryId}>{normalizeCategoryName(category.categoryName)}</option>
-                ))}
-              </select>
+                onChange={categoryId => setEditForm({ ...editForm, categoryId })}
+                options={[
+                  { value: "", label: "Kategori Seçin" },
+                  ...categories.map(category => ({
+                    value: category.categoryId,
+                    label: normalizeCategoryName(category.categoryName),
+                  })),
+                ]}
+                ariaLabel="Kategori seçin"
+                triggerClassName={validationClass(editForm.categoryId, editValidation.categoryId)}
+              />
               <textarea
                 className="product-description-input"
                 rows={6}
@@ -1718,7 +1822,7 @@ function ProductsTab() {
       ) : (
         /* Pasif Ürün Sağ Panel */
         selectedDeletedProduct ? (
-          <div className="admin-detail-panel">
+          <div ref={productResultPanelRef} className="admin-detail-panel">
             <div className="admin-detail-header">
               <div>
                 <h3>{selectedDeletedProduct.productName}</h3>
@@ -1811,6 +1915,18 @@ function OrdersTab() {
   const [userAddresses, setUserAddresses] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState({});
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const orderResultPanelRef = useMobileResultPanelScroll(
+    selectedUser
+      ? `order-user:${getUserId(selectedUser) ?? getUserEmail(selectedUser)}`
+      : orderSearchNotFound
+        ? `order-user-not-found:${searchType}:${searchValue.trim()}`
+        : null
+  );
+  const orderNameSearchListRef = useMobileResultPanelScroll(
+    searchType === "name" && searchResult && !orderSearchNotFound
+      ? `order-name-search:${searchValue.trim()}:${searchPage}`
+      : null
+  );
   const isSearchValid = searchType === "email"
     ? isValidEmail(searchValue)
     : searchType === "phone"
@@ -1822,19 +1938,16 @@ function OrdersTab() {
     getAllProducts(1, 999).then(data => setProducts(data.items));
   }, []);
 
-  useEffect(() => { fetchOrdersTabUsers(); }, [userPage]);
-  useEffect(() => { fetchLastOrders(); }, [lastOrdersPage]);
-
-  async function fetchOrdersTabUsers() {
+  const fetchOrdersTabUsers = useCallback(async () => {
     try {
       const data = await getAllUsers(userPage, ORDERS_TAB_USER_PAGE_SIZE);
       setUsers(data.items);
       setUserTotalPages(data.totalPages);
       setUserTotalCount(data.totalCount);
     } catch { notify.error("Kullanıcılar alınamadı."); }
-  }
+  }, [userPage]);
 
-  async function fetchLastOrders() {
+  const fetchLastOrders = useCallback(async () => {
     try {
       setLastOrdersLoading(true);
       const data = await getLastOrders(lastOrdersPage, LAST_ORDERS_PAGE_SIZE);
@@ -1846,7 +1959,23 @@ function OrdersTab() {
     } finally {
       setLastOrdersLoading(false);
     }
-  }
+  }, [lastOrdersPage]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchOrdersTabUsers();
+    });
+    return () => { active = false; };
+  }, [fetchOrdersTabUsers]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) fetchLastOrders();
+    });
+    return () => { active = false; };
+  }, [fetchLastOrders]);
 
   async function handleOrderUserSearch(event, pageToLoad = 1) {
     event?.preventDefault();
@@ -1854,6 +1983,7 @@ function OrdersTab() {
 
     try {
       setSearchingUser(true);
+      setOrderSearchNotFound(false);
       const result = searchType === "email"
         ? await getUserByMail(searchValue.trim())
         : searchType === "phone"
@@ -1983,7 +2113,7 @@ function OrdersTab() {
       : users;
 
   return (
-    <div className="admin-split">
+    <div className="admin-split compact-admin-list orders-admin-split">
       <div className="admin-list-panel">
         <div className="admin-section-header" style={{ marginBottom: 12 }}>
           <h3 style={{ margin: 0 }}>Kullanıcılar ({userTotalCount})</h3>
@@ -2054,7 +2184,7 @@ function OrdersTab() {
                 : "İsim araması için en az 3 karakter girin."}
           </ValidationHint>
         </form>
-        <div className="admin-list">
+        <div ref={orderNameSearchListRef} className="admin-list">
           {visibleOrderUsers.map(user => (
             <div
               key={getUserId(user) ?? getUserEmail(user)}
@@ -2081,7 +2211,7 @@ function OrdersTab() {
       </div>
 
       {selectedUser ? (
-        <div className="admin-detail-panel">
+        <div ref={orderResultPanelRef} className="admin-detail-panel">
           <div className="admin-detail-header">
             <h3>{selectedUser.userName} - Siparişleri</h3>
             <div className="admin-detail-actions">
@@ -2100,21 +2230,27 @@ function OrdersTab() {
 
           {showAddOrder && (
             <div className="form-step admin-form-box">
-              <select value={orderForm.productId} onChange={e => setOrderForm({ ...orderForm, productId: Number(e.target.value) })}>
-                <option value={0}>Ürün Seçin</option>
-                {products.map(p => <option key={p.productId} value={p.productId}>{p.productName}</option>)}
-              </select>
-              <select value={orderForm.addressId} onChange={e => setOrderForm({ ...orderForm, addressId: Number(e.target.value) })}>
-                <option value="">Adres Seçin</option>
-                {userAddresses.map(addr => {
-                  const addressId = getAddressId(addr);
-                  return (
-                    <option key={addressId} value={addressId}>
-                      {addr.district}, {addr.city} - {ADDRESS_TYPES[addr.addressType]}
-                    </option>
-                  );
-                })}
-              </select>
+              <ResponsiveSelect
+                value={orderForm.productId}
+                onChange={productId => setOrderForm({ ...orderForm, productId: Number(productId) })}
+                options={[
+                  { value: 0, label: "Ürün Seçin" },
+                  ...products.map(product => ({ value: product.productId, label: product.productName })),
+                ]}
+                ariaLabel="Ürün seçin"
+              />
+              <ResponsiveSelect
+                value={orderForm.addressId}
+                onChange={addressId => setOrderForm({ ...orderForm, addressId: Number(addressId) })}
+                options={[
+                  { value: "", label: "Adres Seçin" },
+                  ...userAddresses.map(address => ({
+                    value: getAddressId(address),
+                    label: `${address.district}, ${address.city} - ${ADDRESS_TYPES[address.addressType]}`,
+                  })),
+                ]}
+                ariaLabel="Adres seçin"
+              />
               <input type="number" min={1} placeholder="Adet" value={orderForm.quantity}
                 onChange={e => setOrderForm({ ...orderForm, quantity: e.target.value === "" ? "" : Number(e.target.value) })} />
               <div className="form-buttons">
@@ -2157,21 +2293,20 @@ function OrdersTab() {
                       <div className="order-status-editor">
                         <label htmlFor={`status-${order.orderId}`}>Yeni durum</label>
                         <div className="order-status-editor-row">
-                          <select
+                          <ResponsiveSelect
                             id={`status-${order.orderId}`}
                             value={selectedStatus}
                             disabled={updatingOrderId === order.orderId}
-                            onChange={event => setSelectedStatuses(current => ({
+                            onChange={status => setSelectedStatuses(current => ({
                               ...current,
-                              [order.orderId]: event.target.value,
+                              [order.orderId]: status,
                             }))}
-                          >
-                            {allowedStatuses.map(status => (
-                              <option key={status} value={status}>
-                                {getStatusTransitionLabel(status)}
-                              </option>
-                            ))}
-                          </select>
+                            options={allowedStatuses.map(status => ({
+                              value: status,
+                              label: getStatusTransitionLabel(status),
+                            }))}
+                            ariaLabel="Yeni sipariş durumu"
+                          />
                           <button
                             type="button"
                             className={`btn-action ${selectedStatus === "Canceled" ? "danger" : ""}`}
@@ -2196,7 +2331,7 @@ function OrdersTab() {
           )}
         </div>
       ) : orderSearchNotFound ? (
-        <div className="admin-detail-panel admin-last-orders-panel">
+        <div ref={orderResultPanelRef} className="admin-detail-panel admin-last-orders-panel">
           <div className="admin-empty-state">
             <div className="admin-empty-state-icon">?</div>
             <h4>Kullanıcı bulunamadı</h4>
@@ -2288,6 +2423,13 @@ function CategoriesTab() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const categoryResultPanelRef = useMobileResultPanelScroll(
+    showAddForm
+      ? "add-category"
+      : selectedCategory
+        ? `category:${selectedCategory.categoryId}`
+        : null
+  );
 
   useEffect(() => {
     let active = true;
@@ -2367,12 +2509,17 @@ function CategoriesTab() {
       setCategoryName("");
       await fetchCategories();
     } catch (err) {
-      notify.error(err?.response?.data?.message || "Kategori silinemedi.");
+      const message = err?.response?.data?.message;
+      if (err?.response?.status === 400 && message === "Category cannot be deleted because it contains products.") {
+        notify.warning("Bu kategoriye ait ürünler bulunduğu için kategori silinemez. Önce kategorideki ürünleri kaldırın veya başka bir kategoriye taşıyın.");
+      } else {
+        notify.error(message || "Kategori silinemedi.");
+      }
     }
   }
 
   return (
-    <div className="admin-split">
+    <div className="admin-split compact-admin-list categories-admin-split">
       <ConfirmModal
         isOpen={deleteModalOpen}
         title="Kategoriyi Sil"
@@ -2417,7 +2564,7 @@ function CategoriesTab() {
       </div>
 
       {showAddForm ? (
-        <div className="admin-detail-panel">
+        <div ref={categoryResultPanelRef} className="admin-detail-panel">
           <div className="admin-detail-header">
             <h3>Yeni Kategori Ekle</h3>
           </div>
@@ -2434,7 +2581,7 @@ function CategoriesTab() {
           </div>
         </div>
       ) : selectedCategory ? (
-        <div className="admin-detail-panel">
+        <div ref={categoryResultPanelRef} className="admin-detail-panel">
           <div className="admin-detail-header">
             <div>
               <h3>{normalizeCategoryName(selectedCategory.categoryName)}</h3>

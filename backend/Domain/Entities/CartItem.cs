@@ -2,12 +2,12 @@
 
 namespace Domain.Entities
 {
-    public class CartItem : BaseEntity<int>
+    public class CartItem : WorkspaceEntity<int>
     {
         public int UserId { get; private set; }
-        public User User { get; private set; }
+        public User User { get; private set; } = null!;
         public int ProductId { get; private set; }
-        public Product Product { get; private set; }
+        public Product Product { get; private set; } = null!;
         public int Quantity {  get; private set; }
         public decimal TotalPrice => Quantity * Product.Price;
         private CartItem() { }

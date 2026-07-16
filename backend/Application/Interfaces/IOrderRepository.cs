@@ -5,7 +5,7 @@ namespace Application.Interfaces
 {
     public interface IOrderRepository
     {
-        Task<Order> GetOrderById(int id);
+        Task<Order?> GetOrderById(int id);
         Task<PagedList<Order>> GetLastOrders(int pageNumber, int pageSize);
         Task AddOrder(Order Order);
         Task UpdateOrder(Order Order);

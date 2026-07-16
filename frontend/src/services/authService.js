@@ -1,6 +1,8 @@
 import api from "./api";
 const roleClaim= "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+const nameIdentifierClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 export const AUTH_CHANGED_EVENT = "authChanged";
+const DEMO_WORKSPACE_SESSION_KEY = "demoWorkspaceSession";
 
 function emitAuthChanged() {
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
@@ -38,12 +40,25 @@ export const login = async (formData) => {
         email: formData.eMail, 
         password: formData.password
     });
+    localStorage.removeItem(DEMO_WORKSPACE_SESSION_KEY);
     setAuthToken(response.data.response);
     return response.data;
 }
 
+export const createDemoWorkspace = async () => {
+    const response = await api.post(`/Auth/Create-Demo-Workspace`);
+    localStorage.setItem(DEMO_WORKSPACE_SESSION_KEY, "true");
+    setAuthToken(response.data.response.token);
+    return response.data;
+}
+
 export const logout = () => {
+    localStorage.removeItem(DEMO_WORKSPACE_SESSION_KEY);
     setAuthToken(null);
+}
+
+export const isDemoWorkspaceSession = () => {
+    return localStorage.getItem(DEMO_WORKSPACE_SESSION_KEY) === "true";
 }
 
 export const isLoggedIn = () => { //kullanıcı giriş yapmış mı?
@@ -62,4 +77,12 @@ export const getRole = () => {
     return payload?.[roleClaim] ?? null;
     //index'e 1 verme sebebimiz : 0:header, 1:payload, 2:signature. 
     //atob ile base64'ü stringe; jsonparse ile string'i json'a çeviriyoruz.
+}
+
+export const getCurrentUserId = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    const payload = decodeTokenPayload(token);
+    const userId = Number(payload?.[nameIdentifierClaim]);
+    return Number.isInteger(userId) ? userId : null;
 }

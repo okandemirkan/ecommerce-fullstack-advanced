@@ -20,6 +20,8 @@ namespace Application.Features.Categories.Handlers
             var category = await _categoryRepository.GetCategoryById(request.categoryId);
             if (category is null)
                 throw new NotFoundException("No category found with provided Id");
+            if (await _categoryRepository.HasProducts(request.categoryId))
+                throw new BadRequestException("Category cannot be deleted because it contains products.");
 
             await _categoryRepository.DeleteCategory(category);
 

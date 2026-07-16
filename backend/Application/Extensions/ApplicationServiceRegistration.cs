@@ -7,7 +7,9 @@ namespace Application.Extensions
 {
     public static class ApplicationServiceRegistration
     {
-        public static IServiceCollection AddApplicationService(this IServiceCollection services)
+        public static IServiceCollection AddApplicationService(
+            this IServiceCollection services,
+            string? autoMapperLicenseKey = null)
         {
             services.AddMediatR(configuration =>
             {
@@ -18,7 +20,11 @@ namespace Application.Extensions
             });
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             //Bu assembly'deki tüm validator sınıflarını bul, IValidator<T> olarak kaydet.
-            services.AddAutoMapper(configAction => { }, Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(configAction =>
+            {
+                if (!string.IsNullOrWhiteSpace(autoMapperLicenseKey))
+                    configAction.LicenseKey = autoMapperLicenseKey;
+            }, Assembly.GetExecutingAssembly());
             return services;
         }
     }

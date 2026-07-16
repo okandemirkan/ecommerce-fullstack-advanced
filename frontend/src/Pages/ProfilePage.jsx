@@ -5,8 +5,9 @@ import { getProfile, updateProfile, changePassword, getAddresses, addAddress, de
 import RatingStars from "../components/RatingStars";
 import { getCurrentUserReviews } from "../services/reviewService";
 import { notify } from "../utils/notify";
-import { logout, login, setAuthToken } from "../services/authService";
+import { isDemoWorkspaceSession, logout, login, setAuthToken } from "../services/authService";
 import ValidationHint from "../components/ValidationHint";
+import ResponsiveSelect from "../components/ResponsiveSelect";
 import {
   getValidationState,
   hasValue,
@@ -252,6 +253,8 @@ function ProfilePage() {
 
   if (!user) return <div className="profile-loading">Yükleniyor...</div>;
 
+  const isDemoAdmin = isDemoWorkspaceSession()
+    || (user.role === "Admin" && user.eMail?.toLowerCase() === "demo-1@example.com");
   const hasInfoChanges = JSON.stringify(normalizeInfoForm(infoForm)) !== JSON.stringify(normalizeInfoForm(initialInfoForm));
   const infoValidation = {
     userName: isValidPersonName(infoForm.userName),
@@ -299,21 +302,25 @@ function ProfilePage() {
           <button className={activeTab === "info" ? "active" : ""} onClick={() => setActiveTab("info")}>
             Bilgilerim
           </button>
-          <button className={activeTab === "password" ? "active" : ""} onClick={() => setActiveTab("password")}>
-            Şifre Değiştir
-          </button>
+          {!isDemoAdmin && (
+            <button className={activeTab === "password" ? "active" : ""} onClick={() => setActiveTab("password")}>
+              Şifre Değiştir
+            </button>
+          )}
           <button className={activeTab === "addresses" ? "active" : ""} onClick={() => setActiveTab("addresses")}>
             Adreslerim
           </button>
           <button className={activeTab === "reviews" ? "active" : ""} onClick={() => setActiveTab("reviews")}>
             Yorumlarım
           </button>
-          <button
-            className={`profile-nav-danger ${activeTab === "account" ? "active" : ""}`}
-            onClick={() => setActiveTab("account")}
-          >
-            ⚠️ Hesabı Kapat
-          </button>
+          {!isDemoAdmin && (
+            <button
+              className={`profile-nav-danger ${activeTab === "account" ? "active" : ""}`}
+              onClick={() => setActiveTab("account")}
+            >
+              ⚠️ Hesabı Kapat
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -364,7 +371,7 @@ function ProfilePage() {
           </div>
         )}
 
-        {activeTab === "password" && (
+        {!isDemoAdmin && activeTab === "password" && (
           <div className="profile-card">
             <h2>Şifre Değiştir</h2>
             <div className="form-step">
@@ -464,12 +471,12 @@ function ProfilePage() {
                   </div>
                   <input type="text" placeholder="Posta Kodu (opsiyonel)" value={addressForm.zipCode}
                     onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })} />
-                  <select value={addressForm.addressType}
-                    onChange={(e) => setAddressForm({ ...addressForm, addressType: e.target.value })}>
-                    <option value="Home">Ev</option>
-                    <option value="Job">İş</option>
-                    <option value="Other">Diğer</option>
-                  </select>
+                  <ResponsiveSelect
+                    value={addressForm.addressType}
+                    onChange={addressType => setAddressForm({ ...addressForm, addressType })}
+                    options={Object.entries(ADDRESS_TYPES).map(([optionValue, label]) => ({ value: optionValue, label }))}
+                    ariaLabel="Adres türü"
+                  />
                   <div className="form-buttons">
                     <button className="btn-secondary" onClick={() => setShowAddressForm(false)}>İptal</button>
                     <button className="btn-primary" onClick={handleAddAddress} disabled={!isAddressFormValid}>Kaydet</button>
@@ -529,12 +536,12 @@ function ProfilePage() {
                       </div>
                       <input type="text" placeholder="Posta Kodu" value={editForm.zipCode}
                         onChange={(e) => setEditForm({ ...editForm, zipCode: e.target.value })} />
-                      <select value={editForm.addressType}
-                        onChange={(e) => setEditForm({ ...editForm, addressType: e.target.value })}>
-                        <option value="Home">Ev</option>
-                        <option value="Job">İş</option>
-                        <option value="Other">Diğer</option>
-                      </select>
+                      <ResponsiveSelect
+                        value={editForm.addressType}
+                        onChange={addressType => setEditForm({ ...editForm, addressType })}
+                        options={Object.entries(ADDRESS_TYPES).map(([optionValue, label]) => ({ value: optionValue, label }))}
+                        ariaLabel="Adres türü"
+                      />
                       <div className="form-buttons">
                         <button className="btn-secondary" onClick={() => setEditingAddress(null)}>İptal</button>
                         <button className="btn-primary" onClick={() => handleUpdateAddress(addressId)} disabled={!isEditAddressFormValid}>Kaydet</button>
@@ -597,7 +604,7 @@ function ProfilePage() {
         )}
 
         {/* ── Hesabı Kapat Tab ── */}
-        {activeTab === "account" && (
+        {!isDemoAdmin && activeTab === "account" && (
           <div className="profile-card">
             <h2 className="danger-heading">Hesabı Kapat</h2>
 

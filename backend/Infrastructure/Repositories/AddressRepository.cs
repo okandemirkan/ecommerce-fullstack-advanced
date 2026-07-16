@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<IEnumerable<Address?>> GetAddressesByUserId(int id)
+        public async Task<IEnumerable<Address>> GetAddressesByUserId(int id)
         {
             var address = await _context.Addresses.Include(c => c.User).
                 Where(a => a.UserId == id).ToListAsync();

@@ -2,13 +2,13 @@
 
 namespace Domain.Entities
 {
-    public class OrderItem : BaseEntity<int> // Bir siparişteki her bir ürünü temsil ediyor
+    public class OrderItem : WorkspaceEntity<int> // Bir siparişteki her bir ürünü temsil ediyor
     {
         public int OrderId { get; private set;}
-        public Order Order { get; private set;}
+        public Order Order { get; private set;} = null!;
         public int ProductId { get; private set;}
-        public Product Product { get; private set;}
-        public string ProductName { get; private set;} //Ürün bilgileri değiştiğinde sipariş bilgileri değişmemeli.
+        public Product Product { get; private set;} = null!;
+        public string ProductName { get; private set;} = string.Empty; //Ürün bilgileri değiştiğinde sipariş bilgileri değişmemeli.
         public string? ImageUrl { get; private set;}
         public decimal Price { get; private set;}
         public int Quantity { get; private set;}
@@ -32,6 +32,13 @@ namespace Domain.Entities
                 Price = price,
                 Quantity = quantity
             };
+        }
+        public static OrderItem CreateWorkspaceCopy(int productId, string productName,
+            string? imageUrl, decimal price, int quantity, Guid workspaceId)
+        {
+            var item = CreateOrderItem(productId, productName, imageUrl, price, quantity);
+            item.AssignToWorkspace(workspaceId);
+            return item;
         }
         public void IncreaseQuantity(int amount)
         {
