@@ -24,16 +24,25 @@ function buildPages(currentPage, totalPages) {
   return withEllipsis;
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
+function Pagination({ currentPage, totalPages, onPageChange, scrollToTopOnMobile = false }) {
   if (!totalPages || totalPages <= 1) return null;
 
   const items = buildPages(currentPage, totalPages);
+
+  function handlePageChange(nextPage) {
+    if (nextPage === currentPage) return;
+
+    onPageChange(nextPage);
+    if (scrollToTopOnMobile && window.matchMedia("(max-width: 768px)").matches) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }
 
   return (
     <nav className="pagination" aria-label="Sayfalama">
       <button
         className="pagination-btn pagination-arrow"
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Önceki sayfa"
       >
@@ -47,7 +56,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
           <button
             key={item}
             className={`pagination-btn ${item === currentPage ? "pagination-active" : ""}`}
-            onClick={() => onPageChange(item)}
+            onClick={() => handlePageChange(item)}
             aria-current={item === currentPage ? "page" : undefined}
           >
             {item}
@@ -57,7 +66,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 
       <button
         className="pagination-btn pagination-arrow"
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Sonraki sayfa"
       >

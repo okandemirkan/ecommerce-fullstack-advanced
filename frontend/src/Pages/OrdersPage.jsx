@@ -368,7 +368,12 @@ function OrdersPage() {
               </div>
             );
           })}
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            scrollToTopOnMobile
+          />
         </div>
       )}
     </div>
