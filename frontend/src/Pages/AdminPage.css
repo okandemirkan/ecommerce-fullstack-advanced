@@ -468,6 +468,27 @@
   font-size: 1.05rem;
 }
 
+.admin-product-category-filter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-product-category-filter > label {
+  color: var(--text, #5a5750);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.admin-product-category-filter .responsive-select-trigger {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
 .product-description-input {
   min-height: 140px;
   resize: vertical;
@@ -1747,6 +1768,11 @@
 }
 
 @media (max-width: 640px) {
+  .admin-product-category-filter {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
   .compact-admin-list .admin-list-panel {
     padding: 14px 12px;
   }

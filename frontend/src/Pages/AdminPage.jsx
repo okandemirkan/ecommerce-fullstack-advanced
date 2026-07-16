@@ -12,7 +12,7 @@ import {
 import RatingStars from "../components/RatingStars";
 import ConfirmModal from "../components/ConfirmModal";
 import Pagination from "../components/Pagination";
-import { getAllProducts } from "../services/productService";
+import { getAllProducts, getProductsByCategoryId } from "../services/productService";
 import { deleteReviewAsAdmin, getReviewsByUserId } from "../services/reviewService";
 import {
   addCategory, deleteCategory, getAllCategories, updateCategory
@@ -1173,6 +1173,7 @@ function ProductsTab() {
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [selectedProductCategoryId, setSelectedProductCategoryId] = useState("");
   const addValidation = {
     productName: hasValue(addForm.productName),
     categoryId: hasValue(addForm.categoryId),
@@ -1222,12 +1223,18 @@ function ProductsTab() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const data = await getAllProducts(productPage, PRODUCT_PAGE_SIZE);
+      const data = selectedProductCategoryId
+        ? await getProductsByCategoryId(
+            Number(selectedProductCategoryId),
+            productPage,
+            PRODUCT_PAGE_SIZE
+          )
+        : await getAllProducts(productPage, PRODUCT_PAGE_SIZE);
       setProducts(data.items);
       setProductTotalPages(data.totalPages);
       setProductTotalCount(data.totalCount);
     } catch { notify.error("Ürünler alınamadı."); }
-  }, [productPage]);
+  }, [productPage, selectedProductCategoryId]);
 
   const fetchDeletedProducts = useCallback(async () => {
     try {
@@ -1274,6 +1281,7 @@ function ProductsTab() {
     setSelectedProduct(null);
     setSelectedDeletedProduct(null);
     setShowAddForm(false);
+    setSelectedProductCategoryId("");
     clearProductSearch();
     if (view === "deleted") fetchDeletedProducts();
   }
@@ -1285,6 +1293,8 @@ function ProductsTab() {
 
     try {
       setProductSearching(true);
+      setSelectedProductCategoryId("");
+      setProductPage(1);
       const data = await searchProductsByNameAsAdmin(query, pageToLoad, PRODUCT_PAGE_SIZE);
       try {
         const deletedData = await getSoftDeletedProducts(1, 10000);
@@ -1311,6 +1321,17 @@ function ProductsTab() {
     setProductSearchPage(1);
     setSelectedProduct(null);
     setSelectedDeletedProduct(null);
+  }
+
+  function handleProductCategoryChange(categoryId) {
+    setSelectedProductCategoryId(categoryId);
+    setProductPage(1);
+    setProductSearchValue("");
+    setProductSearchResult(null);
+    setProductSearchPage(1);
+    setSelectedProduct(null);
+    setSelectedDeletedProduct(null);
+    setShowAddForm(false);
   }
 
   function isProductDeleted(product) {
@@ -1549,6 +1570,24 @@ function ProductsTab() {
         )}
 
         <form className="admin-user-search" onSubmit={handleProductSearch}>
+          {productView === "active" && (
+            <div className="admin-product-category-filter">
+              <label htmlFor="admin-product-category-filter">Kategori</label>
+              <ResponsiveSelect
+                id="admin-product-category-filter"
+                value={selectedProductCategoryId}
+                onChange={handleProductCategoryChange}
+                options={[
+                  { value: "", label: "Tüm Kategoriler" },
+                  ...categories.map(category => ({
+                    value: category.categoryId,
+                    label: normalizeCategoryName(category.categoryName),
+                  })),
+                ]}
+                ariaLabel="Kategoriye göre filtrele"
+              />
+            </div>
+          )}
           <div className="admin-search-row">
             <input
               type="text"
@@ -1575,7 +1614,11 @@ function ProductsTab() {
 
         <div className="admin-list">
           {productView === "active" || productSearchResult ? (
-            visibleProducts.map(product => (
+            visibleProducts.length === 0 ? (
+              <p className="empty-text">
+                {selectedProductCategoryId ? "Bu kategoride ürün bulunamadı." : "Ürün bulunamadı."}
+              </p>
+            ) : visibleProducts.map(product => (
               <div
                 key={product.productId}
                 className={`admin-list-item ${(selectedProduct?.productId === product.productId || selectedDeletedProduct?.productId === product.productId) ? "active" : ""}`}

@@ -52,15 +52,19 @@ function ResponsiveSelect({
       }
     };
     const closeMenu = () => setIsOpen(false);
+    const handleScroll = event => {
+      if (menuRef.current?.contains(event.target)) return;
+      closeMenu();
+    };
 
     document.addEventListener("pointerdown", handleOutsideClick);
     window.addEventListener("resize", closeMenu);
-    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("scroll", handleScroll, true);
 
     return () => {
       document.removeEventListener("pointerdown", handleOutsideClick);
       window.removeEventListener("resize", closeMenu);
-      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [isOpen]);
 
