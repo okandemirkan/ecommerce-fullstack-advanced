@@ -4,7 +4,7 @@
 
 This repository is the enhanced and deployment-ready version of the previously published [ecommerce-fullstack](https://github.com/okandemirkan/ecommerce-fullstack) project.
 
-**Live Demo:** [Visit the application](LIVE_SITE_URL)
+**Live Demo:** https://frontend-production-5957.up.railway.app/
 
 This version introduces an isolated **Demo Workspace** architecture designed to keep the public demonstration safe and reusable. Whenever a visitor starts a Demo Admin session, the application creates a temporary workspace containing isolated copies of the demo users, products, categories, orders, addresses, reviews, and related data.
 
